@@ -1,13 +1,13 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { extractTextFromPDF } from './utils/pdfExtract'
 import { analyzePitchDeck } from './utils/analyzePrompt'
 
 const PITCHIN_RED = '#C8102E'
 
 const STATUS_CONFIG = {
-  found: { color: 'bg-emerald-500', icon: '✅', label: 'Found' },
-  partial: { color: 'bg-amber-500', icon: '⚠️', label: 'Partial' },
-  missing: { color: 'bg-red-500', icon: '❌', label: 'Missing' },
+  found: { color: 'bg-emerald-500', dot: 'bg-emerald-400', icon: '✅', label: 'Found' },
+  partial: { color: 'bg-amber-500', dot: 'bg-amber-400', icon: '⚠️', label: 'Partial' },
+  missing: { color: 'bg-red-500', dot: 'bg-red-400', icon: '❌', label: 'Missing' },
 }
 
 const SECTION_ICONS = {
@@ -23,14 +23,14 @@ function ScoreRing({ score, total = 11 }) {
 
   return (
     <div className="flex flex-col items-center">
-      <svg width="140" height="140" viewBox="0 0 120 120">
+      <svg width="120" height="120" viewBox="0 0 120 120">
         <circle cx="60" cy="60" r={r} fill="none" stroke="#f1f5f9" strokeWidth="10" />
         <circle cx="60" cy="60" r={r} fill="none" stroke={color} strokeWidth="10"
           strokeLinecap="round" strokeDasharray={circ}
           strokeDashoffset={circ * (1 - pct)}
           transform="rotate(-90 60 60)"
           style={{ transition: 'stroke-dashoffset 1s ease' }} />
-        <text x="60" y="55" textAnchor="middle" className="text-2xl font-bold" fill="#1e293b"
+        <text x="60" y="55" textAnchor="middle" fill="#1e293b"
           style={{ fontSize: '28px', fontWeight: 700 }}>{score}</text>
         <text x="60" y="75" textAnchor="middle" fill="#94a3b8"
           style={{ fontSize: '14px' }}>/ {total}</text>
@@ -40,18 +40,12 @@ function ScoreRing({ score, total = 11 }) {
   )
 }
 
-function SectionCard({ section, isActive, onClick }) {
+function SectionCard({ section }) {
   const config = STATUS_CONFIG[section.status]
   const icon = SECTION_ICONS[section.name] || '📄'
 
   return (
-    <div
-      id={`section-${section.name}`}
-      onClick={onClick}
-      className={`bg-white rounded-xl border-2 p-5 cursor-pointer transition-all duration-200 hover:shadow-md ${
-        isActive ? 'border-red-500 shadow-md' : 'border-slate-100'
-      }`}
-    >
+    <div className="bg-white rounded-xl border border-slate-100 p-5 shadow-sm">
       <div className="flex items-center gap-3 mb-3">
         <span className="text-xl">{icon}</span>
         <h3 className="font-semibold text-slate-800 text-lg flex-1">{section.name}</h3>
@@ -61,7 +55,7 @@ function SectionCard({ section, isActive, onClick }) {
       </div>
 
       {section.content && (
-        <p className="text-slate-600 text-sm leading-relaxed mb-3 line-clamp-4">{section.content}</p>
+        <p className="text-slate-600 text-sm leading-relaxed mb-3">{section.content}</p>
       )}
 
       {section.gaps?.length > 0 && section.gaps[0] !== '' && (
@@ -81,13 +75,62 @@ function SectionCard({ section, isActive, onClick }) {
   )
 }
 
+function SectionTabs({ sections, activeSection, onSelect }) {
+  const tabsRef = useRef(null)
+
+  useEffect(() => {
+    const activeEl = tabsRef.current?.querySelector(`[data-tab="${activeSection}"]`)
+    if (activeEl) {
+      activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
+    }
+  }, [activeSection])
+
+  return (
+    <div className="bg-white border-b border-slate-100 sticky top-[57px] z-10">
+      <div className="max-w-5xl mx-auto">
+        <div ref={tabsRef} className="flex overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <button
+            data-tab="all"
+            onClick={() => onSelect('all')}
+            className={`shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+              activeSection === 'all'
+                ? 'border-red-500 text-red-600'
+                : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            All
+          </button>
+          {sections.map((s) => {
+            const config = STATUS_CONFIG[s.status]
+            return (
+              <button
+                key={s.name}
+                data-tab={s.name}
+                onClick={() => onSelect(s.name)}
+                className={`shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
+                  activeSection === s.name
+                    ? 'border-red-500 text-red-600'
+                    : 'border-transparent text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                <span className={`w-2 h-2 rounded-full ${config.dot}`} />
+                {s.name}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function App() {
   const [file, setFile] = useState(null)
   const [fileName, setFileName] = useState('')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState(null)
   const [error, setError] = useState(null)
-  const [activeSection, setActiveSection] = useState(null)
+  const [activeSection, setActiveSection] = useState('all')
   const [dragOver, setDragOver] = useState(false)
   const fileRef = useRef()
 
@@ -111,7 +154,7 @@ export default function App() {
       const text = await extractTextFromPDF(file)
       const analysis = await analyzePitchDeck(text)
       setResult(analysis)
-      if (analysis.sections?.length) setActiveSection(analysis.sections[0].name)
+      setActiveSection('all')
     } catch (err) {
       setError(err.message)
     } finally {
@@ -124,7 +167,7 @@ export default function App() {
     setFileName('')
     setResult(null)
     setError(null)
-    setActiveSection(null)
+    setActiveSection('all')
   }
 
   const copyGapQuestions = () => {
@@ -141,7 +184,6 @@ export default function App() {
   if (!result && !loading) {
     return (
       <div className="min-h-screen bg-white">
-        {/* Header */}
         <header className="border-b border-slate-100">
           <div className="max-w-5xl mx-auto px-6 py-4 flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: PITCHIN_RED }}>
@@ -151,7 +193,6 @@ export default function App() {
           </div>
         </header>
 
-        {/* Hero */}
         <div className="max-w-5xl mx-auto px-6 pt-20 pb-10">
           <div className="max-w-2xl">
             <h1 className="text-5xl font-bold text-slate-900 leading-tight mb-4">
@@ -166,7 +207,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* Upload area */}
         <div className="max-w-5xl mx-auto px-6 pb-20">
           <div
             className={`border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-200 cursor-pointer ${
@@ -222,7 +262,6 @@ export default function App() {
           )}
         </div>
 
-        {/* Footer */}
         <footer className="border-t border-slate-100 py-6">
           <p className="text-center text-xs text-slate-400">
             Built for PitchIN campaign readiness • Powered by Claude AI
@@ -251,11 +290,15 @@ export default function App() {
   const partial = result.sections.filter(s => s.status === 'partial').length
   const missing = result.sections.filter(s => s.status === 'missing').length
 
+  const visibleSections = activeSection === 'all'
+    ? result.sections
+    : result.sections.filter(s => s.name === activeSection)
+
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <header className="bg-white border-b border-slate-100 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+      <header className="bg-white border-b border-slate-100 sticky top-0 z-20">
+        <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: PITCHIN_RED }}>
               <span className="text-white text-sm font-bold">P</span>
@@ -267,7 +310,7 @@ export default function App() {
               onClick={copyGapQuestions}
               className="text-sm border border-slate-200 text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-50 transition"
             >
-              📋 Copy Gap Questions
+              📋 Copy Gaps
             </button>
             <button
               onClick={handleReset}
@@ -280,70 +323,43 @@ export default function App() {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-6 py-8 flex gap-8">
-        {/* Sidebar */}
-        <aside className="w-64 shrink-0 hidden lg:block">
-          <div className="sticky top-20 space-y-6">
-            {/* Score */}
-            <div className="bg-white rounded-xl border border-slate-100 p-6 flex flex-col items-center">
-              <ScoreRing score={result.readiness_score} />
-            </div>
+      {/* Section tabs */}
+      <SectionTabs
+        sections={result.sections}
+        activeSection={activeSection}
+        onSelect={setActiveSection}
+      />
 
-            {/* Stats */}
-            <div className="bg-white rounded-xl border border-slate-100 p-4 space-y-2 text-sm">
-              <div className="flex justify-between"><span className="text-slate-500">✅ Found</span><span className="font-semibold text-emerald-600">{found}</span></div>
-              <div className="flex justify-between"><span className="text-slate-500">⚠️ Partial</span><span className="font-semibold text-amber-600">{partial}</span></div>
-              <div className="flex justify-between"><span className="text-slate-500">❌ Missing</span><span className="font-semibold text-red-600">{missing}</span></div>
-            </div>
-
-            {/* Section nav */}
-            <nav className="bg-white rounded-xl border border-slate-100 p-3 space-y-1">
-              {result.sections.map((s) => (
-                <button
-                  key={s.name}
-                  onClick={() => {
-                    setActiveSection(s.name)
-                    document.getElementById(`section-${s.name}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                  }}
-                  className={`w-full text-left text-sm px-3 py-2 rounded-lg flex items-center gap-2 transition ${
-                    activeSection === s.name
-                      ? 'bg-red-50 text-red-700 font-medium'
-                      : 'text-slate-600 hover:bg-slate-50'
-                  }`}
-                >
-                  <span className={`w-2 h-2 rounded-full shrink-0 ${STATUS_CONFIG[s.status].color}`} />
-                  {s.name}
-                </button>
-              ))}
-            </nav>
-          </div>
-        </aside>
-
-        {/* Main content */}
-        <main className="flex-1 min-w-0">
-          {/* Company header */}
-          <div className="bg-white rounded-xl border border-slate-100 p-6 mb-6">
+      {/* Summary bar */}
+      <div className="max-w-5xl mx-auto px-6 pt-6 pb-4">
+        <div className="bg-white rounded-xl border border-slate-100 p-6 flex flex-col md:flex-row gap-6 items-center">
+          <ScoreRing score={result.readiness_score} />
+          <div className="flex-1 min-w-0">
             <h1 className="text-2xl font-bold text-slate-800">{result.company_name}</h1>
-            <p className="text-slate-500 mt-2 leading-relaxed">{result.overall_assessment}</p>
+            <p className="text-slate-500 mt-2 leading-relaxed text-sm">{result.overall_assessment}</p>
+            <div className="flex gap-4 mt-3 text-sm">
+              <span className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+                <span className="text-slate-600">{found} Found</span>
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+                <span className="text-slate-600">{partial} Partial</span>
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-400" />
+                <span className="text-slate-600">{missing} Missing</span>
+              </span>
+            </div>
           </div>
+        </div>
+      </div>
 
-          {/* Mobile score (hidden on desktop) */}
-          <div className="lg:hidden bg-white rounded-xl border border-slate-100 p-6 mb-6 flex justify-center">
-            <ScoreRing score={result.readiness_score} />
-          </div>
-
-          {/* Section cards */}
-          <div className="space-y-4">
-            {result.sections.map((section) => (
-              <SectionCard
-                key={section.name}
-                section={section}
-                isActive={activeSection === section.name}
-                onClick={() => setActiveSection(section.name)}
-              />
-            ))}
-          </div>
-        </main>
+      {/* Section cards */}
+      <div className="max-w-5xl mx-auto px-6 pb-12 space-y-4">
+        {visibleSections.map((section) => (
+          <SectionCard key={section.name} section={section} />
+        ))}
       </div>
     </div>
   )
