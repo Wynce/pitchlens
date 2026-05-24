@@ -71,7 +71,8 @@ Use this structure:
     }
 
     const raw = data.content[0].text
-    const result = JSON.parse(raw)
+    const cleaned = raw.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim()
+    const result = JSON.parse(cleaned)
     return res.status(200).json(result)
   } catch (err) {
     return res.status(500).json({ error: err.message })
