@@ -1,3 +1,5 @@
+import { createRequire } from 'module'
+
 // Polyfill browser APIs needed by pdf-parse's internal pdfjs
 if (typeof globalThis.DOMMatrix === 'undefined') {
   globalThis.DOMMatrix = class DOMMatrix {
@@ -21,6 +23,9 @@ if (typeof globalThis.DOMMatrix === 'undefined') {
 if (typeof globalThis.Path2D === 'undefined') {
   globalThis.Path2D = class Path2D { constructor() {} moveTo() {} lineTo() {} bezierCurveTo() {} rect() {} closePath() {} }
 }
+
+const require = createRequire(import.meta.url)
+const pdfParse = require('pdf-parse')
 
 export const config = {
   api: {
@@ -47,8 +52,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    const mod = await import('pdf-parse')
-    const pdfParse = mod.default || mod
     const result = await pdfParse(buffer)
     return res.status(200).json({ text: result.text, pages: result.numpages })
   } catch (err) {
