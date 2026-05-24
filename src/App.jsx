@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { extractPDF, extractViaBlob } from './utils/pdfExtract'
 import { analyzePitchDeck } from './utils/analyzePrompt'
+import { exportAnalysisPDF } from './utils/exportPdf'
 
 const PITCHIN_RED = '#C8102E'
 
@@ -283,15 +284,19 @@ export default function App() {
             </div>
             <span className="text-lg font-bold text-slate-800">PitchLens</span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <button onClick={() => exportAnalysisPDF(result)}
+              className="text-sm border border-slate-200 text-slate-600 px-3 py-2 rounded-lg hover:bg-slate-50 transition">
+              📄 Export PDF
+            </button>
             <button onClick={copyGapQuestions}
-              className="text-sm border border-slate-200 text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-50 transition">
+              className="text-sm border border-slate-200 text-slate-600 px-3 py-2 rounded-lg hover:bg-slate-50 transition">
               📋 Copy Gaps
             </button>
             <button onClick={handleReset}
-              className="text-sm text-white px-4 py-2 rounded-lg transition hover:opacity-90"
+              className="text-sm text-white px-3 py-2 rounded-lg transition hover:opacity-90"
               style={{ backgroundColor: PITCHIN_RED }}>
-              ← New Analysis
+              ← New
             </button>
           </div>
         </div>
