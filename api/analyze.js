@@ -1,12 +1,20 @@
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '20mb',
+    },
+  },
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { text } = req.body
+  const { text, pageImages } = req.body
 
   if (!text) {
-    return res.status(400).json({ error: 'No text provided' })
+    return res.status(400).json({ error: 'No content provided' })
   }
 
   const SYSTEM_PROMPT = `You are an equity crowdfunding (ECF) analyst specialising in the Malaysian startup ecosystem. You help evaluate pitch decks for readiness to list on ECF platforms like PitchIN.
@@ -18,12 +26,14 @@ Given a pitch deck or business plan document, do the following:
 
 2. For each section, provide:
    - status: "found", "partial", or "missing"
-   - content: The relevant extracted text (if found/partial)
+   - content: The relevant extracted text (if found/partial). READ ALL CHARTS, DIAGRAMS, TABLES, AND INFOGRAPHICS from the page images — extract the data and key figures from them.
    - gaps: Specific questions the founder needs to answer (if partial/missing). Make questions specific to THIS company, not generic.
 
 3. Provide an overall readiness_score (0-11) based on how many sections are adequately covered.
 
 4. Provide a brief overall_assessment (3 sentences max): What's strong about this pitch, what's the biggest gap, and one specific recommendation.
+
+IMPORTANT: You are given both extracted text AND page images. Use the text for accurate content extraction. Use the page images to read charts, pie charts, competitor matrices, market sizing visuals, fund allocation breakdowns, revenue model diagrams, team photos, traction graphs, and any other visual elements that the text extraction may have missed.
 
 Only extract what is in the document. Do not infer or fabricate.
 
@@ -43,6 +53,38 @@ Use this structure:
   ]
 }`
 
+  // Build message content: text + page images
+  const contentBlocks = [
+    {
+      type: 'text',
+      text: `Here is the extracted text from the pitch deck:\n\n${text}`,
+    },
+  ]
+
+  // Add page images if available (for chart/diagram reading)
+  if (pageImages && pageImages.length > 0) {
+    contentBlocks.push({
+      type: 'text',
+      text: `\n\nBelow are the page images from the pitch deck. Use these to read any charts, diagrams, tables, or visual elements that may not appear in the extracted text above:`,
+    })
+
+    for (let i = 0; i < pageImages.length; i++) {
+      contentBlocks.push({
+        type: 'image',
+        source: {
+          type: 'base64',
+          media_type: 'image/jpeg',
+          data: pageImages[i],
+        },
+      })
+    }
+  }
+
+  contentBlocks.push({
+    type: 'text',
+    text: 'Analyze this pitch deck and return the structured JSON assessment.',
+  })
+
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -58,7 +100,7 @@ Use this structure:
         messages: [
           {
             role: 'user',
-            content: `Analyze this pitch deck and return the structured JSON assessment:\n\n${text}`,
+            content: contentBlocks,
           },
         ],
       }),
@@ -71,7 +113,8 @@ Use this structure:
     }
 
     const raw = data.content[0].text
-    const result = JSON.parse(raw)
+    const cleaned = raw.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim()
+    const result = JSON.parse(cleaned)
     return res.status(200).json(result)
   } catch (err) {
     return res.status(500).json({ error: err.message })
