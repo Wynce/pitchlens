@@ -4,21 +4,22 @@ function isMobile() {
 
 export async function extractPDF(file) {
   if (isMobile()) {
-    // Send raw PDF binary to server for text extraction — no base64, no overhead
+    // Send raw PDF binary to server — no base64, no overhead
     const buffer = await file.arrayBuffer()
+
     const response = await fetch('/api/extract', {
       method: 'POST',
       headers: { 'Content-Type': 'application/pdf' },
       body: buffer,
     })
 
+    const result = await response.json()
+
     if (!response.ok) {
-      const err = await response.json().catch(() => ({ error: 'Upload failed' }))
-      throw new Error(err.error || 'Failed to process PDF')
+      throw new Error(result.error || 'Server error')
     }
 
-    const { text } = await response.json()
-    return { mode: 'textonly', text, pageImages: [] }
+    return { mode: 'textonly', text: result.text, pageImages: [] }
   }
 
   // Desktop: hybrid text + page images via PDF.js

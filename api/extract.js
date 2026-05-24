@@ -1,5 +1,3 @@
-import pdfParse from 'pdf-parse/lib/pdf-parse.js'
-
 export const config = {
   api: {
     bodyParser: false,
@@ -21,16 +19,29 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
+  let buffer
   try {
-    const buffer = await getRawBody(req)
+    buffer = await getRawBody(req)
+  } catch (err) {
+    return res.status(500).json({ error: 'Body read failed: ' + err.message })
+  }
 
-    if (buffer.length === 0) {
-      return res.status(400).json({ error: 'No file received' })
-    }
+  if (!buffer || buffer.length === 0) {
+    return res.status(400).json({ error: 'Empty body received' })
+  }
 
+  let pdfParse
+  try {
+    const mod = await import('pdf-parse/lib/pdf-parse.js')
+    pdfParse = mod.default
+  } catch (err) {
+    return res.status(500).json({ error: 'pdf-parse load failed: ' + err.message })
+  }
+
+  try {
     const parsed = await pdfParse(buffer)
     return res.status(200).json({ text: parsed.text })
   } catch (err) {
-    return res.status(500).json({ error: 'Failed to read PDF: ' + err.message })
+    return res.status(500).json({ error: 'PDF parse failed: ' + err.message })
   }
 }
