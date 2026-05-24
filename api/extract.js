@@ -1,3 +1,5 @@
+import { createRequire } from 'module'
+
 export const config = {
   api: { bodyParser: false },
   maxDuration: 30,
@@ -8,7 +10,6 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  // Polyfill browser APIs for pdfjs-dist
   if (typeof globalThis.DOMMatrix === 'undefined') {
     globalThis.DOMMatrix = class DOMMatrix {
       constructor(init) {
@@ -46,8 +47,11 @@ export default async function handler(req, res) {
   }
 
   try {
+    const require = createRequire(import.meta.url)
+    const workerPath = require.resolve('pdfjs-dist/build/pdf.worker.min.mjs')
+
     const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs')
-    pdfjsLib.GlobalWorkerOptions.workerSrc = ''
+    pdfjsLib.GlobalWorkerOptions.workerSrc = workerPath
 
     const doc = await pdfjsLib.getDocument({
       data: new Uint8Array(buffer),
