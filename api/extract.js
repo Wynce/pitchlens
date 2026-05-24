@@ -25,7 +25,7 @@ if (typeof globalThis.Path2D === 'undefined') {
 }
 
 const require = createRequire(import.meta.url)
-const pdfParse = require('pdf-parse')
+const pdfParse = require('pdf-parse/lib/pdf-parse')
 
 export const config = {
   api: {
