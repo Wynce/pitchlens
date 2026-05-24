@@ -1,6 +1,6 @@
+import { extractText } from 'unpdf'
 import { IncomingForm } from 'formidable'
 import { readFileSync } from 'fs'
-import pdfParse from 'pdf-parse/lib/pdf-parse.js'
 
 export const config = {
   api: {
@@ -33,9 +33,9 @@ export default async function handler(req, res) {
     }
 
     const buffer = readFileSync(uploaded.filepath)
-    const parsed = await pdfParse(buffer)
+    const { text } = await extractText(new Uint8Array(buffer))
 
-    return res.status(200).json({ text: parsed.text })
+    return res.status(200).json({ text })
   } catch (err) {
     return res.status(500).json({ error: 'PDF processing failed: ' + err.message })
   }
