@@ -4,6 +4,7 @@ export const config = {
       sizeLimit: '20mb',
     },
   },
+  maxDuration: 60,
 }
 
 export default async function handler(req, res) {
@@ -11,10 +12,10 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { text, pageImages } = req.body
+  const { mode, pdfBase64, text, pageImages } = req.body
 
-  if (!text) {
-    return res.status(400).json({ error: 'No content provided' })
+  if (!mode) {
+    return res.status(400).json({ error: 'No data provided' })
   }
 
   const SYSTEM_PROMPT = `You are an equity crowdfunding (ECF) analyst specialising in the Malaysian startup ecosystem. You help evaluate pitch decks for readiness to list on ECF platforms like PitchIN.
@@ -26,14 +27,14 @@ Given a pitch deck or business plan document, do the following:
 
 2. For each section, provide:
    - status: "found", "partial", or "missing"
-   - content: The relevant extracted text (if found/partial). READ ALL CHARTS, DIAGRAMS, TABLES, AND INFOGRAPHICS from the page images — extract the data and key figures from them.
+   - content: The relevant extracted text (if found/partial). READ ALL CHARTS, DIAGRAMS, TABLES, AND INFOGRAPHICS carefully — extract the data and key figures from them.
    - gaps: Specific questions the founder needs to answer (if partial/missing). Make questions specific to THIS company, not generic.
 
 3. Provide an overall readiness_score (0-11) based on how many sections are adequately covered.
 
 4. Provide a brief overall_assessment (3 sentences max): What's strong about this pitch, what's the biggest gap, and one specific recommendation.
 
-IMPORTANT: You are given both extracted text AND page images. Use the text for accurate content extraction. Use the page images to read charts, pie charts, competitor matrices, market sizing visuals, fund allocation breakdowns, revenue model diagrams, team photos, traction graphs, and any other visual elements that the text extraction may have missed.
+IMPORTANT: Many pitch decks contain critical information in charts, diagrams, tables, competitor matrices, market sizing visuals, fund allocation pie charts, revenue model diagrams, and team photos with titles. You MUST read and extract data from these visual elements.
 
 Only extract what is in the document. Do not infer or fabricate.
 
@@ -53,37 +54,51 @@ Use this structure:
   ]
 }`
 
-  // Build message content: text + page images
-  const contentBlocks = [
-    {
-      type: 'text',
-      text: `Here is the extracted text from the pitch deck:\n\n${text}`,
-    },
-  ]
+  let messageContent
 
-  // Add page images if available (for chart/diagram reading)
-  if (pageImages && pageImages.length > 0) {
-    contentBlocks.push({
-      type: 'text',
-      text: `\n\nBelow are the page images from the pitch deck. Use these to read any charts, diagrams, tables, or visual elements that may not appear in the extracted text above:`,
-    })
-
-    for (let i = 0; i < pageImages.length; i++) {
-      contentBlocks.push({
-        type: 'image',
+  if (mode === 'document') {
+    // Mobile path: send raw PDF as document
+    messageContent = [
+      {
+        type: 'document',
         source: {
           type: 'base64',
-          media_type: 'image/jpeg',
-          data: pageImages[i],
+          media_type: 'application/pdf',
+          data: pdfBase64,
         },
-      })
-    }
-  }
+      },
+      {
+        type: 'text',
+        text: 'Analyze this pitch deck. Pay special attention to charts, diagrams, tables, and visual elements.',
+      },
+    ]
+  } else {
+    // Desktop path: text + page images
+    messageContent = [
+      {
+        type: 'text',
+        text: `Extracted text from the pitch deck:\n\n${text}`,
+      },
+    ]
 
-  contentBlocks.push({
-    type: 'text',
-    text: 'Analyze this pitch deck and return the structured JSON assessment.',
-  })
+    if (pageImages && pageImages.length > 0) {
+      messageContent.push({
+        type: 'text',
+        text: 'Page images for reading charts, diagrams, and visual elements:',
+      })
+      for (const img of pageImages) {
+        messageContent.push({
+          type: 'image',
+          source: { type: 'base64', media_type: 'image/jpeg', data: img },
+        })
+      }
+    }
+
+    messageContent.push({
+      type: 'text',
+      text: 'Return the structured JSON assessment.',
+    })
+  }
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -97,12 +112,7 @@ Use this structure:
         model: 'claude-sonnet-4-20250514',
         max_tokens: 4096,
         system: SYSTEM_PROMPT,
-        messages: [
-          {
-            role: 'user',
-            content: contentBlocks,
-          },
-        ],
+        messages: [{ role: 'user', content: messageContent }],
       }),
     })
 

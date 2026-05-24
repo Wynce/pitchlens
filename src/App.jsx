@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { extractPDFHybrid } from './utils/pdfExtract'
+import { extractPDF } from './utils/pdfExtract'
 import { analyzePitchDeck } from './utils/analyzePrompt'
 
 const PITCHIN_RED = '#C8102E'
@@ -151,8 +151,8 @@ export default function App() {
     setResult(null)
 
     try {
-      const { text, pageImages } = await extractPDFHybrid(file)
-      const analysis = await analyzePitchDeck(text, pageImages)
+      const data = await extractPDF(file)
+      const analysis = await analyzePitchDeck(data)
       setResult(analysis)
       setActiveSection('all')
     } catch (err) {

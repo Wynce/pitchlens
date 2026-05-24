@@ -1,8 +1,8 @@
-export async function analyzePitchDeck(text, pageImages) {
+export async function analyzePitchDeck(data) {
   const response = await fetch('/api/analyze', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text, pageImages }),
+    body: JSON.stringify(data),
   })
 
   if (!response.ok) {
