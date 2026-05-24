@@ -47,6 +47,7 @@ export default async function handler(req, res) {
 
   try {
     const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs')
+    pdfjsLib.GlobalWorkerOptions.workerSrc = ''
 
     const doc = await pdfjsLib.getDocument({
       data: new Uint8Array(buffer),
