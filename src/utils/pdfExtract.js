@@ -4,25 +4,24 @@ function isMobile() {
 
 export async function extractPDF(file) {
   if (isMobile()) {
-    // Send raw PDF binary to server — no base64, no overhead
-    const buffer = await file.arrayBuffer()
+    // FormData file upload — works on every browser including iOS Safari
+    const formData = new FormData()
+    formData.append('file', file)
 
     const response = await fetch('/api/extract', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/pdf' },
-      body: buffer,
+      body: formData,
     })
 
-    const result = await response.json()
-
     if (!response.ok) {
-      throw new Error(result.error || 'Server error')
+      const err = await response.json().catch(() => ({}))
+      throw new Error(err.error || 'Failed to process PDF')
     }
 
-    return { mode: 'textonly', text: result.text, pageImages: [] }
+    const { text } = await response.json()
+    return { mode: 'textonly', text, pageImages: [] }
   }
 
-  // Desktop: hybrid text + page images via PDF.js
   const { extractDesktop } = await import('./pdfExtractDesktop.js')
   return extractDesktop(file)
 }

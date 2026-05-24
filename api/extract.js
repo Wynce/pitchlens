@@ -1,3 +1,7 @@
+import { IncomingForm } from 'formidable'
+import { readFileSync } from 'fs'
+import pdfParse from 'pdf-parse/lib/pdf-parse.js'
+
 export const config = {
   api: {
     bodyParser: false,
@@ -5,12 +9,13 @@ export const config = {
   maxDuration: 30,
 }
 
-function getRawBody(req) {
+function parseForm(req) {
   return new Promise((resolve, reject) => {
-    const chunks = []
-    req.on('data', (chunk) => chunks.push(chunk))
-    req.on('end', () => resolve(Buffer.concat(chunks)))
-    req.on('error', reject)
+    const form = new IncomingForm({ maxFileSize: 50 * 1024 * 1024 })
+    form.parse(req, (err, fields, files) => {
+      if (err) reject(err)
+      else resolve({ fields, files })
+    })
   })
 }
 
@@ -19,29 +24,19 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  let buffer
   try {
-    buffer = await getRawBody(req)
-  } catch (err) {
-    return res.status(500).json({ error: 'Body read failed: ' + err.message })
-  }
+    const { files } = await parseForm(req)
+    const uploaded = files.file?.[0] || files.file
 
-  if (!buffer || buffer.length === 0) {
-    return res.status(400).json({ error: 'Empty body received' })
-  }
+    if (!uploaded) {
+      return res.status(400).json({ error: 'No file uploaded' })
+    }
 
-  let pdfParse
-  try {
-    const mod = await import('pdf-parse/lib/pdf-parse.js')
-    pdfParse = mod.default
-  } catch (err) {
-    return res.status(500).json({ error: 'pdf-parse load failed: ' + err.message })
-  }
-
-  try {
+    const buffer = readFileSync(uploaded.filepath)
     const parsed = await pdfParse(buffer)
+
     return res.status(200).json({ text: parsed.text })
   } catch (err) {
-    return res.status(500).json({ error: 'PDF parse failed: ' + err.message })
+    return res.status(500).json({ error: 'PDF processing failed: ' + err.message })
   }
 }
