@@ -1,142 +1,87 @@
-import jsPDF from 'jspdf'
+function isMobile() {
+  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+}
 
-const PITCHIN_RED = [200, 16, 46]
-const GREEN = [34, 197, 94]
-const AMBER = [245, 158, 11]
-const RED = [239, 68, 68]
-const DARK = [30, 41, 59]
-const GREY = [100, 116, 139]
+async function extractViaDirect(file) {
+  const response = await fetch('/api/extract', {
+    method: 'POST',
+    body: file,
+  })
+  if (!response.ok) {
+    if (response.status === 413) {
+      throw { code: 'TOO_LARGE', size: (file.size / 1024 / 1024).toFixed(1) }
+    }
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.error || 'Could not process PDF')
+  }
+  const { text } = await response.json()
+  return { text, pageImages: [] }
+}
 
-const STATUS_COLORS = { found: GREEN, partial: AMBER, missing: RED }
+async function extractViaBlob(file) {
+  const { upload } = await import('@vercel/blob/client')
+  const blob = await upload(file.name, file, {
+    access: 'public',
+    handleUploadUrl: '/api/upload',
+  })
 
-export function exportAnalysisPDF(result) {
-  const doc = new jsPDF('p', 'mm', 'a4')
-  const W = 210, H = 297
-  const margin = 20
-  const contentW = W - margin * 2
-  let y = margin
+  const response = await fetch('/api/extract', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ blobUrl: blob.url }),
+  })
 
-  // Header bar
-  doc.setFillColor(...PITCHIN_RED)
-  doc.rect(0, 0, W, 18, 'F')
-  doc.setTextColor(255, 255, 255)
-  doc.setFontSize(12)
-  doc.setFont('helvetica', 'bold')
-  doc.text('PitchLens Analysis Report', margin, 12)
-  doc.setFontSize(8)
-  doc.setFont('helvetica', 'normal')
-  doc.text(new Date().toLocaleDateString(), W - margin, 12, { align: 'right' })
-  y = 28
-
-  // Company name & score
-  doc.setTextColor(...DARK)
-  doc.setFontSize(20)
-  doc.setFont('helvetica', 'bold')
-  doc.text(result.company_name || 'Unknown Company', margin, y)
-  y += 10
-
-  // Score badge
-  const score = result.readiness_score || 0
-  const scoreColor = score >= 8 ? GREEN : score >= 5 ? AMBER : RED
-  doc.setFillColor(...scoreColor)
-  doc.roundedRect(margin, y - 5, 36, 12, 3, 3, 'F')
-  doc.setTextColor(255, 255, 255)
-  doc.setFontSize(11)
-  doc.setFont('helvetica', 'bold')
-  doc.text(`${score} / 11`, margin + 18, y + 3, { align: 'center' })
-
-  doc.setTextColor(...GREY)
-  doc.setFontSize(9)
-  doc.setFont('helvetica', 'normal')
-  doc.text('Readiness Score', margin + 42, y + 2)
-  y += 14
-
-  // Overall assessment
-  if (result.overall_assessment) {
-    doc.setTextColor(...DARK)
-    doc.setFontSize(9)
-    doc.setFont('helvetica', 'italic')
-    const lines = doc.splitTextToSize(result.overall_assessment, contentW)
-    doc.text(lines, margin, y)
-    y += lines.length * 4.5 + 6
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.error || 'Could not process PDF')
   }
 
-  // Divider
-  doc.setDrawColor(226, 232, 240)
-  doc.line(margin, y, W - margin, y)
-  y += 8
+  const { text } = await response.json()
+  return { text, pageImages: [] }
+}
 
-  // Sections
-  const sections = result.sections || []
-  for (const section of sections) {
-    // Check if we need a new page
-    if (y > H - 40) {
-      doc.addPage()
-      y = margin
-    }
+export { extractViaBlob }
 
-    const statusColor = STATUS_COLORS[section.status] || GREY
-
-    // Section name + status
-    doc.setFontSize(11)
-    doc.setFont('helvetica', 'bold')
-    doc.setTextColor(...DARK)
-    doc.text(section.name, margin, y)
-
-    // Status pill
-    const statusW = doc.getTextWidth(section.status) + 6
-    doc.setFillColor(...statusColor)
-    doc.roundedRect(margin + doc.getTextWidth(section.name) + 4, y - 4, statusW, 6, 2, 2, 'F')
-    doc.setTextColor(255, 255, 255)
-    doc.setFontSize(7)
-    doc.setFont('helvetica', 'bold')
-    doc.text(section.status.toUpperCase(), margin + doc.getTextWidth(section.name) + 4 + statusW / 2, y - 0.5, { align: 'center' })
-    y += 5
-
-    // Content
-    if (section.content) {
-      doc.setTextColor(...DARK)
-      doc.setFontSize(8)
-      doc.setFont('helvetica', 'normal')
-      const contentLines = doc.splitTextToSize(section.content, contentW)
-      const maxLines = Math.min(contentLines.length, 5)
-      doc.text(contentLines.slice(0, maxLines), margin, y)
-      y += maxLines * 3.8 + 2
-    }
-
-    // Gap questions
-    if (section.gaps?.length > 0 && section.gaps[0] !== '') {
-      doc.setTextColor(...RED)
-      doc.setFontSize(7)
-      doc.setFont('helvetica', 'bold')
-      doc.text('QUESTIONS TO ADDRESS:', margin + 2, y)
-      y += 3.5
-      doc.setFont('helvetica', 'normal')
-      doc.setFontSize(7.5)
-      for (const gap of section.gaps) {
-        if (y > H - 20) {
-          doc.addPage()
-          y = margin
-        }
-        const gapLines = doc.splitTextToSize('→  ' + gap, contentW - 4)
-        doc.text(gapLines, margin + 2, y)
-        y += gapLines.length * 3.5 + 1
-      }
-      y += 2
-    }
-
-    // Section divider
-    doc.setDrawColor(241, 245, 249)
-    doc.line(margin, y, W - margin, y)
-    y += 6
+export async function extractPDF(file) {
+  if (isMobile()) {
+    return extractViaDirect(file)
   }
 
-  // Footer
-  doc.setTextColor(...GREY)
-  doc.setFontSize(7)
-  doc.text('Generated by PitchLens — pitchlens-my.vercel.app', W / 2, H - 10, { align: 'center' })
+  // Desktop: hybrid text + page images via PDF.js
+  const pdfjsLib = await import('pdfjs-dist')
+  pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+    'pdfjs-dist/build/pdf.worker.min.mjs',
+    import.meta.url
+  ).toString()
 
-  // Download
-  const fileName = `PitchLens_${(result.company_name || 'Analysis').replace(/\s+/g, '_')}.pdf`
-  doc.save(fileName)
+  const arrayBuffer = await file.arrayBuffer()
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
+  let fullText = ''
+  const pageImages = []
+
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i)
+
+    const content = await page.getTextContent()
+    const pageText = content.items.map(item => item.str).join(' ')
+    fullText += `\n--- Page ${i} ---\n${pageText}`
+
+    try {
+      const scale = 0.75
+      const viewport = page.getViewport({ scale })
+      const canvas = document.createElement('canvas')
+      canvas.width = viewport.width
+      canvas.height = viewport.height
+      const ctx = canvas.getContext('2d')
+      await page.render({ canvasContext: ctx, viewport }).promise
+      const jpeg = canvas.toDataURL('image/jpeg', 0.4).split(',')[1]
+      pageImages.push(jpeg)
+      canvas.width = 0
+      canvas.height = 0
+    } catch (e) {
+      console.warn('Page image render failed:', e)
+    }
+  }
+
+  return { text: fullText, pageImages }
 }
