@@ -1,10 +1,3 @@
-import * as pdfjsLib from 'pdfjs-dist'
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.mjs',
-  import.meta.url
-).toString()
-
 function isMobile() {
   return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
 }
@@ -20,12 +13,17 @@ function fileToBase64(file) {
 
 export async function extractPDF(file) {
   if (isMobile()) {
-    // Mobile: send raw PDF to Claude's native document reader
     const pdfBase64 = await fileToBase64(file)
     return { mode: 'document', pdfBase64 }
   }
 
-  // Desktop: hybrid text + low-res page images
+  // Desktop only: dynamically import PDF.js
+  const pdfjsLib = await import('pdfjs-dist')
+  pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+    'pdfjs-dist/build/pdf.worker.min.mjs',
+    import.meta.url
+  ).toString()
+
   const arrayBuffer = await file.arrayBuffer()
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
   let fullText = ''
@@ -51,7 +49,7 @@ export async function extractPDF(file) {
       canvas.width = 0
       canvas.height = 0
     } catch (e) {
-      console.warn('Page image render failed, skipping:', e)
+      console.warn('Page image render failed:', e)
     }
   }
 
