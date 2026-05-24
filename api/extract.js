@@ -2,6 +2,7 @@ import { createRequire } from 'module'
 import { del } from '@vercel/blob'
 
 export const config = {
+  api: { bodyParser: false },
   maxDuration: 30,
 }
 
@@ -10,12 +11,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { blobUrl } = req.body
-
-  if (!blobUrl) {
-    return res.status(400).json({ error: 'No blob URL provided' })
-  }
-
+  // Polyfills
   if (typeof globalThis.DOMMatrix === 'undefined') {
     globalThis.DOMMatrix = class DOMMatrix {
       constructor(init) {
@@ -40,13 +36,43 @@ export default async function handler(req, res) {
     }
   }
 
-  try {
-    // Download PDF from blob storage
-    const pdfResponse = await fetch(blobUrl)
-    const arrayBuffer = await pdfResponse.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
+  // Read raw body
+  const chunks = []
+  await new Promise((resolve, reject) => {
+    req.on('data', (chunk) => chunks.push(chunk))
+    req.on('end', resolve)
+    req.on('error', reject)
+  })
+  const rawBuffer = Buffer.concat(chunks)
 
-    // Extract text
+  if (rawBuffer.length === 0) {
+    return res.status(400).json({ error: 'No data received' })
+  }
+
+  let buffer
+
+  // Check if body is JSON (blob URL) or raw PDF
+  const firstChar = String.fromCharCode(rawBuffer[0])
+  if (firstChar === '{') {
+    // JSON with blobUrl
+    try {
+      const { blobUrl } = JSON.parse(rawBuffer.toString())
+      if (!blobUrl) {
+        return res.status(400).json({ error: 'No blob URL in request' })
+      }
+      const pdfResponse = await fetch(blobUrl)
+      const arrayBuffer = await pdfResponse.arrayBuffer()
+      buffer = Buffer.from(arrayBuffer)
+      try { await del(blobUrl) } catch (e) {}
+    } catch (e) {
+      return res.status(400).json({ error: 'Invalid request: ' + e.message })
+    }
+  } else {
+    // Raw PDF binary
+    buffer = rawBuffer
+  }
+
+  try {
     const require = createRequire(import.meta.url)
     const workerPath = require.resolve('pdfjs-dist/build/pdf.worker.min.mjs')
     const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs')
@@ -64,9 +90,6 @@ export default async function handler(req, res) {
       const pageText = content.items.map(item => item.str).join(' ')
       fullText += pageText + '\n'
     }
-
-    // Delete blob after extraction
-    try { await del(blobUrl) } catch (e) { /* ignore cleanup errors */ }
 
     return res.status(200).json({ text: fullText, pages: doc.numPages })
   } catch (err) {
