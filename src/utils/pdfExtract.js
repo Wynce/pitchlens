@@ -1,18 +1,30 @@
-import * as pdfjsLib from 'pdfjs-dist'
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.mjs',
-  import.meta.url
-).toString()
-
 function isMobile() {
   return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
 }
 
 export async function extractPDF(file) {
   if (isMobile()) {
-    throw new Error('PitchLens works best on desktop. Please open pitchlens-my.vercel.app on your laptop or computer.')
+    // Send file directly to server — no encoding, no PDF.js
+    const response = await fetch('/api/extract', {
+      method: 'POST',
+      body: file,
+    })
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}))
+      throw new Error(err.error || 'Could not process PDF')
+    }
+
+    const { text } = await response.json()
+    return { text, pageImages: [] }
   }
+
+  // Desktop only: load PDF.js
+  const pdfjsLib = await import('pdfjs-dist')
+  pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+    'pdfjs-dist/build/pdf.worker.min.mjs',
+    import.meta.url
+  ).toString()
 
   const arrayBuffer = await file.arrayBuffer()
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
