@@ -4,30 +4,24 @@ function isMobile() {
 
 export async function extractPDF(file) {
   if (isMobile()) {
-    const sizeMB = file.size / 1024 / 1024
-    if (sizeMB > 5) {
-      throw new Error(
-        `This PDF is ${sizeMB.toFixed(1)}MB. Mobile works best with files under 5MB. ` +
-        `Please try on desktop for larger pitch decks.`
-      )
+    // Send raw PDF binary to server for text extraction — no base64, no overhead
+    const buffer = await file.arrayBuffer()
+    const response = await fetch('/api/extract', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/pdf' },
+      body: buffer,
+    })
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ error: 'Upload failed' }))
+      throw new Error(err.error || 'Failed to process PDF')
     }
 
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onload = () => {
-        try {
-          const dataUrl = reader.result
-          const base64 = dataUrl.substring(dataUrl.indexOf(',') + 1)
-          resolve({ mode: 'document', pdfBase64: base64 })
-        } catch (e) {
-          reject(new Error('Could not process this PDF on mobile. Please try on desktop.'))
-        }
-      }
-      reader.onerror = () => reject(new Error('Could not read file. Please try again.'))
-      reader.readAsDataURL(file)
-    })
+    const { text } = await response.json()
+    return { mode: 'textonly', text, pageImages: [] }
   }
 
+  // Desktop: hybrid text + page images via PDF.js
   const { extractDesktop } = await import('./pdfExtractDesktop.js')
   return extractDesktop(file)
 }
