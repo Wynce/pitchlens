@@ -2,29 +2,49 @@ function isMobile() {
   return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
 }
 
+async function extractViaDirect(file) {
+  const response = await fetch('/api/extract', {
+    method: 'POST',
+    body: file,
+  })
+  if (!response.ok) {
+    if (response.status === 413) {
+      throw { code: 'TOO_LARGE', size: (file.size / 1024 / 1024).toFixed(1) }
+    }
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.error || 'Could not process PDF')
+  }
+  const { text } = await response.json()
+  return { text, pageImages: [] }
+}
+
+async function extractViaBlob(file) {
+  const { upload } = await import('@vercel/blob/client')
+  const blob = await upload(file.name, file, {
+    access: 'public',
+    handleUploadUrl: '/api/upload',
+  })
+
+  const response = await fetch('/api/extract', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ blobUrl: blob.url }),
+  })
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.error || 'Could not process PDF')
+  }
+
+  const { text } = await response.json()
+  return { text, pageImages: [] }
+}
+
+export { extractViaBlob }
+
 export async function extractPDF(file) {
   if (isMobile()) {
-    // Step 1: Upload to Vercel Blob (no size limit)
-    const { upload } = await import('@vercel/blob/client')
-    const blob = await upload(file.name, file, {
-      access: 'public',
-      handleUploadUrl: '/api/upload',
-    })
-
-    // Step 2: Send blob URL to server for text extraction
-    const response = await fetch('/api/extract', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ blobUrl: blob.url }),
-    })
-
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({}))
-      throw new Error(err.error || 'Could not process PDF')
-    }
-
-    const { text } = await response.json()
-    return { text, pageImages: [] }
+    return extractViaDirect(file)
   }
 
   // Desktop: hybrid text + page images via PDF.js
