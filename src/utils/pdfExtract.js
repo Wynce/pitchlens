@@ -4,10 +4,18 @@ function isMobile() {
 
 export async function extractPDF(file) {
   if (isMobile()) {
-    // Send file directly to server — no encoding, no PDF.js
+    // Step 1: Upload to Vercel Blob (no size limit)
+    const { upload } = await import('@vercel/blob/client')
+    const blob = await upload(file.name, file, {
+      access: 'public',
+      handleUploadUrl: '/api/upload',
+    })
+
+    // Step 2: Send blob URL to server for text extraction
     const response = await fetch('/api/extract', {
       method: 'POST',
-      body: file,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ blobUrl: blob.url }),
     })
 
     if (!response.ok) {
@@ -19,7 +27,7 @@ export async function extractPDF(file) {
     return { text, pageImages: [] }
   }
 
-  // Desktop only: load PDF.js
+  // Desktop: hybrid text + page images via PDF.js
   const pdfjsLib = await import('pdfjs-dist')
   pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
     'pdfjs-dist/build/pdf.worker.min.mjs',

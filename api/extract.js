@@ -1,13 +1,19 @@
 import { createRequire } from 'module'
+import { del } from '@vercel/blob'
 
 export const config = {
-  api: { bodyParser: false },
   maxDuration: 30,
 }
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
+  }
+
+  const { blobUrl } = req.body
+
+  if (!blobUrl) {
+    return res.status(400).json({ error: 'No blob URL provided' })
   }
 
   if (typeof globalThis.DOMMatrix === 'undefined') {
@@ -34,22 +40,15 @@ export default async function handler(req, res) {
     }
   }
 
-  const chunks = []
-  await new Promise((resolve, reject) => {
-    req.on('data', (chunk) => chunks.push(chunk))
-    req.on('end', resolve)
-    req.on('error', reject)
-  })
-  const buffer = Buffer.concat(chunks)
-
-  if (buffer.length === 0) {
-    return res.status(400).json({ error: 'No data received' })
-  }
-
   try {
+    // Download PDF from blob storage
+    const pdfResponse = await fetch(blobUrl)
+    const arrayBuffer = await pdfResponse.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+
+    // Extract text
     const require = createRequire(import.meta.url)
     const workerPath = require.resolve('pdfjs-dist/build/pdf.worker.min.mjs')
-
     const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs')
     pdfjsLib.GlobalWorkerOptions.workerSrc = workerPath
 
@@ -65,6 +64,9 @@ export default async function handler(req, res) {
       const pageText = content.items.map(item => item.str).join(' ')
       fullText += pageText + '\n'
     }
+
+    // Delete blob after extraction
+    try { await del(blobUrl) } catch (e) { /* ignore cleanup errors */ }
 
     return res.status(200).json({ text: fullText, pages: doc.numPages })
   } catch (err) {
