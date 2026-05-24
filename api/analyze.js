@@ -53,7 +53,7 @@ Use this structure:
 }`
 
   const contentBlocks = [
-    { type: 'text', text: `Extracted text from the pitch deck:\n\n${text}` },
+    { type: 'text', text: 'Extracted text from the pitch deck:\n\n' + text },
   ]
 
   if (pageImages && pageImages.length > 0) {
