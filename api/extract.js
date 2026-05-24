@@ -1,4 +1,3 @@
-import { extractText } from 'unpdf'
 import { IncomingForm } from 'formidable'
 import { readFileSync } from 'fs'
 
@@ -19,6 +18,28 @@ function parseForm(req) {
   })
 }
 
+async function extractTextFromPDF(buffer) {
+  // Try unpdf first
+  try {
+    const { extractText } = await import('unpdf')
+    const result = await extractText(new Uint8Array(buffer))
+    if (result.text) return result.text
+  } catch (e) {
+    console.log('unpdf failed:', e.message)
+  }
+
+  // Fallback: pdf-parse
+  try {
+    const { default: pdfParse } = await import('pdf-parse/lib/pdf-parse.js')
+    const result = await pdfParse(buffer)
+    if (result.text) return result.text
+  } catch (e) {
+    console.log('pdf-parse failed:', e.message)
+  }
+
+  throw new Error('Could not extract text from this PDF')
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
@@ -33,10 +54,10 @@ export default async function handler(req, res) {
     }
 
     const buffer = readFileSync(uploaded.filepath)
-    const { text } = await extractText(new Uint8Array(buffer))
+    const text = await extractTextFromPDF(buffer)
 
     return res.status(200).json({ text })
   } catch (err) {
-    return res.status(500).json({ error: 'PDF processing failed: ' + err.message })
+    return res.status(500).json({ error: err.message })
   }
 }

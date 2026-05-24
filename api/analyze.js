@@ -1,5 +1,3 @@
-import pdfParse from 'pdf-parse/lib/pdf-parse.js'
-
 export const config = {
   api: {
     bodyParser: {
@@ -14,26 +12,10 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { mode, pdfBase64, text, pageImages } = req.body
+  const { text, pageImages } = req.body
 
-  if (!mode) {
-    return res.status(400).json({ error: 'No data provided' })
-  }
-
-  // If mobile sent raw PDF, extract text server-side (cheap)
-  let extractedText = text
-  if (mode === 'document' && pdfBase64) {
-    try {
-      const buffer = Buffer.from(pdfBase64, 'base64')
-      const parsed = await pdfParse(buffer)
-      extractedText = parsed.text
-    } catch (e) {
-      return res.status(400).json({ error: 'Failed to read PDF: ' + e.message })
-    }
-  }
-
-  if (!extractedText) {
-    return res.status(400).json({ error: 'No text could be extracted' })
+  if (!text) {
+    return res.status(400).json({ error: 'No text provided' })
   }
 
   const SYSTEM_PROMPT = `You are an equity crowdfunding (ECF) analyst specialising in the Malaysian startup ecosystem. You help evaluate pitch decks for readiness to list on ECF platforms like PitchIN.
@@ -70,15 +52,10 @@ Use this structure:
   ]
 }`
 
-  // Build message content
   const contentBlocks = [
-    {
-      type: 'text',
-      text: `Extracted text from the pitch deck:\n\n${extractedText}`,
-    },
+    { type: 'text', text: `Extracted text from the pitch deck:\n\n${text}` },
   ]
 
-  // Desktop hybrid: add page images for chart reading
   if (pageImages && pageImages.length > 0) {
     contentBlocks.push({
       type: 'text',
