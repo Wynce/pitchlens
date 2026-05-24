@@ -1,3 +1,27 @@
+// Polyfill browser APIs needed by pdf-parse's internal pdfjs
+if (typeof globalThis.DOMMatrix === 'undefined') {
+  globalThis.DOMMatrix = class DOMMatrix {
+    constructor(init) {
+      const v = init || [1, 0, 0, 1, 0, 0]
+      this.a = v[0]; this.b = v[1]; this.c = v[2]
+      this.d = v[3]; this.e = v[4]; this.f = v[5]
+      this.is2D = true; this.isIdentity = false
+    }
+    static fromFloat32Array(a) { return new DOMMatrix(a) }
+    static fromFloat64Array(a) { return new DOMMatrix(a) }
+    static fromMatrix() { return new DOMMatrix() }
+    inverse() { return new DOMMatrix() }
+    multiply() { return new DOMMatrix() }
+    translate() { return new DOMMatrix() }
+    scale() { return new DOMMatrix() }
+    rotate() { return new DOMMatrix() }
+    transformPoint(p) { return p || { x: 0, y: 0, z: 0, w: 1 } }
+  }
+}
+if (typeof globalThis.Path2D === 'undefined') {
+  globalThis.Path2D = class Path2D { constructor() {} moveTo() {} lineTo() {} bezierCurveTo() {} rect() {} closePath() {} }
+}
+
 export const config = {
   api: {
     bodyParser: false,
@@ -10,7 +34,6 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  // Read raw body
   const chunks = []
   await new Promise((resolve, reject) => {
     req.on('data', (chunk) => chunks.push(chunk))
@@ -23,7 +46,6 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'No data received' })
   }
 
-  // Extract PDF text
   try {
     const pdfParse = (await import('pdf-parse')).default
     const result = await pdfParse(buffer)
