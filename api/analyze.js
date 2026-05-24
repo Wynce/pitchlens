@@ -1,3 +1,5 @@
+import pdfParse from 'pdf-parse/lib/pdf-parse.js'
+
 export const config = {
   api: {
     bodyParser: {
@@ -18,6 +20,22 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'No data provided' })
   }
 
+  // If mobile sent raw PDF, extract text server-side (cheap)
+  let extractedText = text
+  if (mode === 'document' && pdfBase64) {
+    try {
+      const buffer = Buffer.from(pdfBase64, 'base64')
+      const parsed = await pdfParse(buffer)
+      extractedText = parsed.text
+    } catch (e) {
+      return res.status(400).json({ error: 'Failed to read PDF: ' + e.message })
+    }
+  }
+
+  if (!extractedText) {
+    return res.status(400).json({ error: 'No text could be extracted' })
+  }
+
   const SYSTEM_PROMPT = `You are an equity crowdfunding (ECF) analyst specialising in the Malaysian startup ecosystem. You help evaluate pitch decks for readiness to list on ECF platforms like PitchIN.
 
 Given a pitch deck or business plan document, do the following:
@@ -33,8 +51,6 @@ Given a pitch deck or business plan document, do the following:
 3. Provide an overall readiness_score (0-11) based on how many sections are adequately covered.
 
 4. Provide a brief overall_assessment (3 sentences max): What's strong about this pitch, what's the biggest gap, and one specific recommendation.
-
-IMPORTANT: Many pitch decks contain critical information in charts, diagrams, tables, competitor matrices, market sizing visuals, fund allocation pie charts, revenue model diagrams, and team photos with titles. You MUST read and extract data from these visual elements.
 
 Only extract what is in the document. Do not infer or fabricate.
 
@@ -54,47 +70,32 @@ Use this structure:
   ]
 }`
 
-  let messageContent
-
-  if (mode === 'document' && pdfBase64) {
-    // Native PDF document mode
-    messageContent = [
-      {
-        type: 'document',
-        source: { type: 'base64', media_type: 'application/pdf', data: pdfBase64 },
-      },
-      {
-        type: 'text',
-        text: 'Analyze this pitch deck. Pay special attention to charts, diagrams, tables, and visual elements.',
-      },
-    ]
-  } else {
-    // Text-only or hybrid mode
-    messageContent = [
-      {
-        type: 'text',
-        text: `Extracted text from the pitch deck:\n\n${text}`,
-      },
-    ]
-
-    if (pageImages && pageImages.length > 0) {
-      messageContent.push({
-        type: 'text',
-        text: 'Page images for reading charts, diagrams, and visual elements:',
-      })
-      for (const img of pageImages) {
-        messageContent.push({
-          type: 'image',
-          source: { type: 'base64', media_type: 'image/jpeg', data: img },
-        })
-      }
-    }
-
-    messageContent.push({
+  // Build message content
+  const contentBlocks = [
+    {
       type: 'text',
-      text: 'Return the structured JSON assessment.',
+      text: `Extracted text from the pitch deck:\n\n${extractedText}`,
+    },
+  ]
+
+  // Desktop hybrid: add page images for chart reading
+  if (pageImages && pageImages.length > 0) {
+    contentBlocks.push({
+      type: 'text',
+      text: 'Page images for reading charts, diagrams, and visual elements:',
     })
+    for (const img of pageImages) {
+      contentBlocks.push({
+        type: 'image',
+        source: { type: 'base64', media_type: 'image/jpeg', data: img },
+      })
+    }
   }
+
+  contentBlocks.push({
+    type: 'text',
+    text: 'Analyze this pitch deck and return the structured JSON assessment.',
+  })
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -108,7 +109,7 @@ Use this structure:
         model: 'claude-sonnet-4-20250514',
         max_tokens: 4096,
         system: SYSTEM_PROMPT,
-        messages: [{ role: 'user', content: messageContent }],
+        messages: [{ role: 'user', content: contentBlocks }],
       }),
     })
 
