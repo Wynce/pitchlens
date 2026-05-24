@@ -47,7 +47,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    const pdfParse = (await import('pdf-parse')).default
+    const mod = await import('pdf-parse')
+    const pdfParse = mod.default || mod
     const result = await pdfParse(buffer)
     return res.status(200).json({ text: result.text, pages: result.numpages })
   } catch (err) {
