@@ -56,16 +56,12 @@ Use this structure:
 
   let messageContent
 
-  if (mode === 'document') {
-    // Mobile path: send raw PDF as document
+  if (mode === 'document' && pdfBase64) {
+    // Native PDF document mode
     messageContent = [
       {
         type: 'document',
-        source: {
-          type: 'base64',
-          media_type: 'application/pdf',
-          data: pdfBase64,
-        },
+        source: { type: 'base64', media_type: 'application/pdf', data: pdfBase64 },
       },
       {
         type: 'text',
@@ -73,7 +69,7 @@ Use this structure:
       },
     ]
   } else {
-    // Desktop path: text + page images
+    // Text-only or hybrid mode
     messageContent = [
       {
         type: 'text',
