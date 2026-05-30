@@ -69,7 +69,7 @@ function proceedsTag(label) {
 
 function Badge({ text, color }) {
   return (
-    <span className="text-xs font-semibold px-3 py-1.5 rounded-full text-white whitespace-nowrap" style={{ backgroundColor: color }}>
+    <span className="text-xs font-semibold px-3 py-1.5 rounded-full text-white max-w-full break-words text-center leading-tight" style={{ backgroundColor: color }}>
       {text}
     </span>
   )
