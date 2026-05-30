@@ -1,0 +1,117 @@
+{
+  "company_name": "QuickPark",
+  "readiness_score": 4,
+  "overall_assessment": "QuickPark has identified a real problem with good market data and shows early traction with 1,200 downloads and pilot partnerships. The biggest gaps are lack of clear business model/revenue streams, minimal founder credentials, and missing investment terms. The company needs to detail how they'll monetize beyond vague 'payment features' and provide concrete financial projections.",
+  "sections": [
+    {
+      "name": "Summary",
+      "status": "partial",
+      "content": "QuickPark is a mobile app that helps drivers find parking in busy Malaysian cities. We use technology to solve the parking problem. Our app is available on iOS and Android and we are growing fast. We believe parking is a huge market and we can become the number one parking app in Malaysia.",
+      "gaps": [
+        "What specific technology differentiates QuickPark from existing parking apps?",
+        "What are the key success metrics and milestones achieved to date?",
+        "What is the specific value proposition for parking operators vs drivers?"
+      ]
+    },
+    {
+      "name": "Problem",
+      "status": "found",
+      "content": "Malaysian drivers waste an average of 20 minutes per trip searching for parking in city centres. In KL alone, there are over 2.5 million registered vehicles competing for approximately 500,000 parking spaces in the city centre. This leads to: Traffic congestion (30% of city traffic is caused by drivers circling for parking), Lost productivity (estimated RM 2.4 billion annually in wasted time), Environmental impact (unnecessary emissions from circling vehicles), Driver frustration (parking is consistently rated the #1 pain point for KL commuters in surveys by DBKL).",
+      "gaps": []
+    },
+    {
+      "name": "Solution",
+      "status": "partial",
+      "content": "QuickPark is a smart parking app. Drivers can use our app to find available parking spots nearby. We use sensors and data to show real-time availability. The app is very easy to use and drivers love it. We also plan to add payment features in the future.",
+      "gaps": [
+        "What specific sensors and data sources does QuickPark use for real-time availability?",
+        "How does the technology stack work and what makes it superior to competitors?",
+        "What are the specific payment features planned and timeline for implementation?",
+        "How do you integrate with parking operators' existing systems?"
+      ]
+    },
+    {
+      "name": "Business Model",
+      "status": "missing",
+      "content": "",
+      "gaps": [
+        "How does QuickPark generate revenue - commission from operators, subscription fees, transaction fees?",
+        "What are the revenue projections for years 1-3?",
+        "What is the pricing strategy for different customer segments?",
+        "How do you split revenue with parking operators?"
+      ]
+    },
+    {
+      "name": "Market",
+      "status": "partial",
+      "content": "The parking market in Malaysia is very large and growing. More cars are being sold every year, and cities are getting more congested. Smart parking is a global trend and Malaysia is ready for this technology. We believe we are well-positioned to capture a significant share of this growing market.",
+      "gaps": [
+        "What is the total addressable market (TAM) size in RM for smart parking in Malaysia?",
+        "What is the serviceable addressable market (SAM) QuickPark can realistically target?",
+        "What are the specific growth rates and market trends with data?",
+        "Which cities will QuickPark target first and why?"
+      ]
+    },
+    {
+      "name": "Competition",
+      "status": "missing",
+      "content": "",
+      "gaps": [
+        "Who are the main competitors in Malaysia's parking app space?",
+        "How does QuickPark differentiate from apps like ParkEasy, Smart Selangor Parking, or international players?",
+        "What are competitors' strengths and weaknesses?",
+        "What is QuickPark's competitive advantage and moat?"
+      ]
+    },
+    {
+      "name": "Funding",
+      "status": "partial",
+      "content": "We are looking to raise RM 800,000 to grow QuickPark. This funding will help us scale the business and expand to more cities. We have previously bootstrapped the company with RM 50,000 from the founders.",
+      "gaps": [
+        "What specific milestones will the RM 800,000 achieve?",
+        "What is the detailed fund allocation breakdown?",
+        "What is the projected runway and timeline to profitability?",
+        "When will QuickPark need the next funding round and how much?"
+      ]
+    },
+    {
+      "name": "Vision",
+      "status": "found",
+      "content": "We want to be the leading smart parking platform in Southeast Asia. Parking should be easy, not stressful. We dream of a future where no one has to circle the block looking for a spot.",
+      "gaps": []
+    },
+    {
+      "name": "Founders",
+      "status": "partial",
+      "content": "Kevin Ng — CEO. Passionate about solving urban problems. Lisa Tan — CTO. Full-stack developer. Ravi Kumar — COO. Operations background.",
+      "gaps": [
+        "What are Kevin's specific qualifications and experience in urban planning, startups, or related fields?",
+        "What programming languages and technical stack expertise does Lisa have?",
+        "What specific operations experience does Ravi bring - logistics, business ops, parking industry?",
+        "What equity split exists between the founders?"
+      ]
+    },
+    {
+      "name": "Investment Terms",
+      "status": "missing",
+      "content": "",
+      "gaps": [
+        "What equity percentage is offered for the RM 800,000 investment?",
+        "What is QuickPark's pre-money valuation?",
+        "What type of securities are being offered - equity, convertible notes, SAFE?",
+        "What investor rights and board representation are included?"
+      ]
+    },
+    {
+      "name": "Disclosure",
+      "status": "missing",
+      "content": "",
+      "gaps": [
+        "What are the key risks facing QuickPark's business model?",
+        "Are there any legal or regulatory compliance issues with parking operators?",
+        "What intellectual property does QuickPark own or need?",
+        "Are there any existing debts, commitments or legal disputes?"
+      ]
+    }
+  ]
+}

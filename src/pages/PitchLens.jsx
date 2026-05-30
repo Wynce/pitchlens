@@ -150,6 +150,20 @@ export default function PitchLens() {
     } finally { setLoading(false) }
   }
 
+  const loadDemo = async () => {
+    setLoading(true); setError(null); setResult(null)
+    try {
+      const res = await fetch('/demo-pitchdeck.json')
+      if (!res.ok) throw new Error('Demo data unavailable')
+      const analysis = await res.json()
+      setResult(analysis); setActiveSection('all')
+    } catch (err) {
+      setError(err.message || 'Could not load demo')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleReset = () => { setFile(null); setFileName(''); setResult(null); setError(null); setActiveSection('all') }
 
   const copyGapQuestions = () => {
@@ -217,10 +231,20 @@ export default function PitchLens() {
             )}
           </div>
           {error && <div className="mt-4 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 p-4 rounded-xl text-sm">{error}</div>}
-          {fileName && (
-            <button onClick={handleAnalyze} className="mt-6 text-white px-8 py-3 rounded-xl font-semibold text-lg transition-all hover:opacity-90" style={{ backgroundColor: PITCHIN_RED }}>
-              Analyze Pitch Deck →
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            {fileName && (
+              <button onClick={handleAnalyze} className="text-white px-8 py-3 rounded-xl font-semibold text-lg transition-all hover:opacity-90" style={{ backgroundColor: PITCHIN_RED }}>
+                Analyze Pitch Deck →
+              </button>
+            )}
+            <button onClick={loadDemo}
+              className="px-6 py-3 rounded-xl font-semibold text-lg border-2 text-[#C8102E] dark:text-red-300 transition-all hover:bg-slate-50 dark:hover:bg-slate-900"
+              style={{ borderColor: PITCHIN_RED }}>
+              Try Demo →
             </button>
+          </div>
+          {!fileName && (
+            <p className="mt-3 text-sm text-slate-400">No deck handy? Load a sample analysis of "QuickPark" to see how it works.</p>
           )}
         </div>
         <footer className="border-t border-slate-100 dark:border-slate-800 py-6">
