@@ -277,25 +277,25 @@ export default function PitchLens() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors">
       <header className="bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-700 sticky top-0 z-20">
-        <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: PITCHIN_RED }}>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-2">
+          <Link to="/" className="flex items-center gap-3 min-w-0">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: PITCHIN_RED }}>
               <span className="text-white text-sm font-bold">P</span>
             </div>
             <span className="text-lg font-bold text-slate-800 dark:text-slate-100">PitchLens</span>
           </Link>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <DarkToggle dark={dark} setDark={setDark} />
-            <button onClick={() => exportAnalysisPDF(result)}
+            <button onClick={() => exportAnalysisPDF(result)} title="Export PDF"
               className="text-sm border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition">
-              📄 Export PDF
+              📄<span className="hidden sm:inline"> Export PDF</span>
             </button>
-            <button onClick={copyGapQuestions}
+            <button onClick={copyGapQuestions} title="Copy gap questions"
               className="text-sm border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition">
-              📋 Copy Gaps
+              📋<span className="hidden sm:inline"> Copy Gaps</span>
             </button>
-            <button onClick={handleReset}
-              className="text-sm text-white px-3 py-2 rounded-lg transition hover:opacity-90"
+            <button onClick={handleReset} title="New analysis"
+              className="text-sm text-white px-3 py-2 rounded-lg transition hover:opacity-90 shrink-0"
               style={{ backgroundColor: PITCHIN_RED }}>
               ← New
             </button>
