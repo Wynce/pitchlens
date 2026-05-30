@@ -55,6 +55,18 @@ function meaningfulCharCount(text) {
 // scanned and flagged so the UI can warn the user.
 const LOW_TEXT_THRESHOLD = 100
 
+// Collapse the whitespace that PDF extraction leaves behind (column padding,
+// blank lines, runs of spaces) without losing any words. Termsheets are
+// whitespace-heavy, and trimming it cuts the token count we send to Claude —
+// keeping multi-document analysis under the serverless function timeout.
+function squeezeText(text) {
+  return (text || '')
+    .replace(/[ \t]+/g, ' ')        // runs of spaces/tabs -> single space
+    .replace(/ *\n */g, '\n')        // strip spaces around line breaks
+    .replace(/\n{3,}/g, '\n\n')      // 3+ blank lines -> one blank line
+    .trim()
+}
+
 // BondLens: extract several termsheet PDFs in one pass, labelling each
 // document so Claude can analyze them together. Returns concatenated,
 // labelled text, the combined page images across all files, and per-document
@@ -66,7 +78,8 @@ export async function extractMultiplePDFs(files) {
 
   for (let i = 0; i < files.length; i++) {
     const file = files[i]
-    const { text, pageImages: imgs } = await extractPDF(file)
+    const { text: rawText, pageImages: imgs } = await extractPDF(file)
+    const text = squeezeText(rawText)
     labelledTexts.push(`=== Document ${i + 1}: ${file.name} ===\n${text}`)
     if (imgs?.length) pageImages.push(...imgs)
     const chars = meaningfulCharCount(text)
