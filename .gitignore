@@ -23,3 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 .vercel
+
+# Local sample termsheets (test fixtures — not for the repo)
+sample-termsheets/
