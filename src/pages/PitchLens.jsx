@@ -262,7 +262,7 @@ export default function PitchLens() {
           <div className="w-16 h-16 border-4 border-slate-200 dark:border-slate-700 border-t-red-500 rounded-full animate-spin mx-auto mb-6" />
           <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">Reading your pitch deck...</h2>
           <p className="text-slate-400">Mapping content to PitchIN's 11 campaign sections</p>
-          <p className="text-slate-400 text-sm mt-1">This takes 10-20 seconds</p>
+          <p className="text-slate-400 text-sm mt-1">This usually takes 20-40 seconds</p>
         </div>
       </div>
     )

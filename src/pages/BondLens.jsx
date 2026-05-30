@@ -328,7 +328,7 @@ export default function BondLens() {
             style={{ borderTopColor: NAVY }} />
           <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">Reading your termsheet...</h2>
           <p className="text-slate-400">Extracting deal terms across {files.length} document{files.length > 1 ? 's' : ''}</p>
-          <p className="text-slate-400 text-sm mt-1">This takes 10-20 seconds</p>
+          <p className="text-slate-400 text-sm mt-1">This can take up to a minute for multi-document deals</p>
         </div>
       </div>
     )
