@@ -157,6 +157,7 @@ export default function BondLens() {
   const [files, setFiles] = useState([])
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState(null)
+  const [extractDocs, setExtractDocs] = useState([])
   const [error, setError] = useState(null)
   const [active, setActive] = useState('all')
   const [dragOver, setDragOver] = useState(false)
@@ -188,6 +189,7 @@ export default function BondLens() {
     setLoading(true); setError(null); setResult(null)
     try {
       const data = await extractMultiplePDFs(files)
+      setExtractDocs(data.docs || [])
       const analysis = await analyzeBond(data)
       setResult(analysis); setActive('all')
     } catch (err) {
@@ -202,7 +204,7 @@ export default function BondLens() {
   }
 
   const handleReset = () => {
-    setFiles([]); setResult(null); setError(null); setActive('all'); setGlossaryOpen(false)
+    setFiles([]); setResult(null); setExtractDocs([]); setError(null); setActive('all'); setGlossaryOpen(false)
   }
 
   // ---------- Landing ----------
@@ -309,6 +311,7 @@ export default function BondLens() {
   const risks = r.risk_highlights || []
   const gaps = r.data_gaps || []
   const glossary = r.glossary || []
+  const lowTextDocs = extractDocs.filter((d) => d.lowText)
 
   const isSRI = /sri|sustainab|green|social/i.test(r.programme_name || '') ||
     proceeds.some((p) => p.green_social_label && p.green_social_label.toLowerCase() !== 'none')
@@ -341,6 +344,21 @@ export default function BondLens() {
       <SectionTabs active={active} onSelect={setActive} />
 
       <div className="max-w-5xl mx-auto px-6 py-6 space-y-8">
+        {/* Extraction warning — image-based / scanned PDFs */}
+        {lowTextDocs.length > 0 && (
+          <div className="flex gap-3 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-900 rounded-xl p-4">
+            <span className="text-lg shrink-0">📷</span>
+            <div className="text-sm text-amber-900 dark:text-amber-300 leading-relaxed">
+              <p className="font-semibold mb-1">Limited text extracted from {lowTextDocs.length} document{lowTextDocs.length > 1 ? 's' : ''}</p>
+              <p>
+                {lowTextDocs.map((d) => d.name).join(', ')} appear{lowTextDocs.length > 1 ? '' : 's'} to be
+                image-based or scanned — little selectable text was found. The analysis relies on page images for
+                {lowTextDocs.length > 1 ? ' these' : ' this'} file{lowTextDocs.length > 1 ? 's' : ''} and may be less complete.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Deal Snapshot hero */}
         <SectionShell id="snapshot" title="Deal Snapshot" show={show('snapshot')}>
           <Card className="!p-6">

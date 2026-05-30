@@ -22,6 +22,14 @@ export default async function handler(req, res) {
 
 Given one or more termsheet documents, extract and structure the information into the following sections. Only extract what is in the documents. Do not infer or fabricate. If information is not found, mark it clearly.
 
+IMPORTANT EXTRACTION RULES:
+
+RATING: Populate "rating" ONLY from an explicit credit rating field or statement — for example a "Rating Indicator", "Current Rating", "Credit Rating", or an explicit rating assigned by a rating agency such as RAM Ratings or MARC (e.g. "AAA", "AA1", "AA-IS", "A+/A1"). NEVER derive a rating from the instrument name, programme name, Shariah concept, structure description, or any other descriptive text. If no explicit credit rating is stated anywhere in the documents, set "rating" to exactly "Not Rated".
+
+SELLING RESTRICTIONS: Search across ALL uploaded documents for every reference to the CMSA schedules/sections that govern who may invest — for example Schedule 6 (or Section 229(1)(b)), Schedule 7 (or Section 230), Part 1 of Schedule 6 and 7, and any "sophisticated investor" / "qualified investor" language. A restriction may appear in only one of several documents; aggregate every distinct restriction found across all of them.
+
+REGULATORY APPROVALS: Search across ALL uploaded documents for SC (Securities Commission Malaysia) approval or authorisation dates, BNM (Bank Negara Malaysia) references or approval dates, the approval expiry/validity period, and the sector classification. This information is often spread across different documents — scan every document, not just the first.
+
 Respond ONLY in JSON format with no preamble or markdown. Use this structure:
 
 {

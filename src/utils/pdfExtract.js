@@ -42,21 +42,38 @@ async function extractViaBlob(file) {
 
 export { extractViaBlob }
 
+// Strip structural markers (page dividers, whitespace) to estimate how much
+// *real* text a PDF yielded. Image-based / scanned PDFs return almost none.
+function meaningfulCharCount(text) {
+  return (text || '')
+    .replace(/---\s*Page\s*\d+\s*---/gi, '')
+    .replace(/\s+/g, '')
+    .length
+}
+
+// Below this many real characters a document is treated as image-based /
+// scanned and flagged so the UI can warn the user.
+const LOW_TEXT_THRESHOLD = 100
+
 // BondLens: extract several termsheet PDFs in one pass, labelling each
 // document so Claude can analyze them together. Returns concatenated,
-// labelled text plus the combined page images across all files.
+// labelled text, the combined page images across all files, and per-document
+// extraction metadata (so the UI can flag image-based PDFs that yielded no text).
 export async function extractMultiplePDFs(files) {
   const labelledTexts = []
   const pageImages = []
+  const docs = []
 
   for (let i = 0; i < files.length; i++) {
     const file = files[i]
     const { text, pageImages: imgs } = await extractPDF(file)
     labelledTexts.push(`=== Document ${i + 1}: ${file.name} ===\n${text}`)
     if (imgs?.length) pageImages.push(...imgs)
+    const chars = meaningfulCharCount(text)
+    docs.push({ name: file.name, chars, lowText: chars < LOW_TEXT_THRESHOLD })
   }
 
-  return { text: labelledTexts.join('\n\n'), pageImages }
+  return { text: labelledTexts.join('\n\n'), pageImages, docs }
 }
 
 export async function extractPDF(file) {
