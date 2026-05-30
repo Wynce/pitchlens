@@ -16,10 +16,14 @@ const BLUE = '#3b82f6'
 
 const TABS = [
   { id: 'snapshot', label: 'Snapshot' },
+  { id: 'issuer', label: 'Issuer' },
   { id: 'terms', label: 'Key Terms' },
   { id: 'parties', label: 'Parties' },
+  { id: 'rating', label: 'Rating' },
   { id: 'proceeds', label: 'Proceeds' },
   { id: 'security', label: 'Security' },
+  { id: 'covenants', label: 'Covenants' },
+  { id: 'options', label: 'Options' },
   { id: 'risks', label: 'Risks' },
   { id: 'gaps', label: 'Gaps' },
   { id: 'glossary', label: 'Glossary' },
@@ -27,12 +31,21 @@ const TABS = [
 
 const PARTY_LABELS = {
   issuer: 'Issuer',
+  principal_advisers: 'Principal Adviser(s)',
   lead_arranger: 'Lead Arranger',
+  lead_arrangers: 'Lead Arranger(s)',
+  lead_managers: 'Lead Manager(s)',
   facility_agent: 'Facility Agent',
   trustee_security_agent: 'Trustee / Security Agent',
   paying_agent: 'Paying Agent',
   authorised_depository: 'Authorised Depository',
+  solicitors_arranger: "Solicitors (Arranger)",
+  solicitors_issuer: "Solicitors (Issuer)",
   shariah_adviser: 'Shariah Adviser',
+  shariah_advisers: 'Shariah Adviser(s)',
+  credit_rating_agency: 'Credit Rating Agency',
+  sustainability_framework_adviser: 'Sustainability Framework Adviser',
+  independent_external_reviewer: 'Independent External Reviewer',
 }
 
 const val = (x) => (x && String(x).trim() ? x : '—')
@@ -311,7 +324,17 @@ export default function BondLens() {
   const risks = r.risk_highlights || []
   const gaps = r.data_gaps || []
   const glossary = r.glossary || []
+  const issuerProfile = r.issuer_profile || {}
+  const ratingDetails = r.rating_details || {}
+  const covenants = r.covenants_summary || {}
+  const dissolution = r.dissolution_events_summary || []
+  const options = r.options || {}
   const lowTextDocs = extractDocs.filter((d) => d.lowText)
+
+  // New sections only clutter the "All" view when they hold data; their own
+  // tab always renders (with a fallback) so the tab is never a dead end.
+  const anyOf = (obj) => Object.values(obj).some(has)
+  const secVisible = (id, hasContent) => active === id || (active === 'all' && hasContent)
 
   const isSRI = /sri|sustainab|green|social/i.test(r.programme_name || '') ||
     proceeds.some((p) => p.green_social_label && p.green_social_label.toLowerCase() !== 'none')
@@ -409,6 +432,27 @@ export default function BondLens() {
           )}
         </SectionShell>
 
+        {/* Issuer Profile */}
+        <SectionShell id="issuer" title="Issuer Profile" show={secVisible('issuer', anyOf(issuerProfile))}>
+          <Card>
+            {anyOf(issuerProfile) ? (
+              <div className="grid sm:grid-cols-2 gap-x-8 gap-y-4">
+                <Field label="Listed Status" value={issuerProfile.listed_status} />
+                <Field label="Stock Exchange" value={issuerProfile.stock_exchange} />
+                <Field label="Listing Date" value={issuerProfile.listing_date} />
+                <Field label="Incorporation Date" value={issuerProfile.incorporation_date} />
+                <Field label="Registration No." value={issuerProfile.registration_number} />
+                <Field label="Principal Activities" value={issuerProfile.principal_activities} />
+                <div className="sm:col-span-2">
+                  <Field label="Substantial Shareholders" value={issuerProfile.substantial_shareholders} />
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-slate-400">No issuer profile details found.</p>
+            )}
+          </Card>
+        </SectionShell>
+
         {/* Key Terms grid */}
         <SectionShell id="terms" title="Key Terms" show={show('terms')}>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -468,6 +512,33 @@ export default function BondLens() {
           </Card>
         </SectionShell>
 
+        {/* Rating Details */}
+        <SectionShell id="rating" title="Rating" show={secVisible('rating', anyOf(ratingDetails))}>
+          <Card>
+            {anyOf(ratingDetails) ? (
+              <div className="flex flex-col sm:flex-row sm:items-center gap-5">
+                {has(ratingDetails.rating) && (
+                  <div className="shrink-0 flex flex-col items-center justify-center w-28 h-28 rounded-xl text-white"
+                    style={{ backgroundColor: ratingColor(ratingDetails.rating) }}>
+                    <span className="text-2xl font-bold">{ratingDetails.rating}</span>
+                    {has(ratingDetails.rating_type) && (
+                      <span className="text-[10px] uppercase tracking-wide opacity-90 mt-1">{ratingDetails.rating_type.replace(/_/g, ' ')}</span>
+                    )}
+                  </div>
+                )}
+                <div className="grid sm:grid-cols-2 gap-x-8 gap-y-3 flex-1">
+                  <Field label="Agency" value={ratingDetails.agency} />
+                  <Field label="Final / Indicative" value={ratingDetails.final_or_indicative} />
+                  <Field label="Amount Rated" value={ratingDetails.amount_rated} />
+                  <Field label="Rating Type" value={ratingDetails.rating_type && ratingDetails.rating_type.replace(/_/g, ' ')} />
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-slate-400">No explicit credit rating stated in the documents.</p>
+            )}
+          </Card>
+        </SectionShell>
+
         {/* Use of Proceeds */}
         <SectionShell id="proceeds" title="Use of Proceeds" show={show('proceeds')}>
           {proceeds.length > 0 ? (
@@ -515,6 +586,61 @@ export default function BondLens() {
               </div>
             ) : (
               <p className="text-sm text-slate-400">No security package details found.</p>
+            )}
+          </Card>
+        </SectionShell>
+
+        {/* Covenants & Dissolution Events */}
+        <SectionShell id="covenants" title="Covenants & Events" show={secVisible('covenants', anyOf(covenants) || dissolution.length > 0)}>
+          {anyOf(covenants) && (
+            <div className="grid sm:grid-cols-2 gap-4">
+              <Card>
+                <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">✅ Positive Covenants</h3>
+                <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{val(covenants.positive_covenants)}</p>
+              </Card>
+              <Card>
+                <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">🚫 Negative Covenants</h3>
+                <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{val(covenants.negative_covenants)}</p>
+              </Card>
+              <Card>
+                <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">📊 Financial Covenants</h3>
+                <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{val(covenants.financial_covenants)}</p>
+              </Card>
+              <Card>
+                <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">📄 Information Covenants</h3>
+                <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{val(covenants.information_covenants)}</p>
+              </Card>
+            </div>
+          )}
+
+          {dissolution.length > 0 && (
+            <Card className={anyOf(covenants) ? 'mt-4' : ''}>
+              <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-3">Dissolution / Trigger Events</h3>
+              <ul className="space-y-2 text-sm text-slate-700 dark:text-slate-200">
+                {dissolution.map((d, i) => (
+                  <li key={i} className="flex gap-2"><span className="shrink-0" style={{ color: RED }}>▸</span><span>{d}</span></li>
+                ))}
+              </ul>
+            </Card>
+          )}
+
+          {!anyOf(covenants) && dissolution.length === 0 && (
+            <Card><p className="text-sm text-slate-400">No covenant or dissolution-event details found.</p></Card>
+          )}
+        </SectionShell>
+
+        {/* Options */}
+        <SectionShell id="options" title="Options" show={secVisible('options', anyOf(options))}>
+          <Card>
+            {anyOf(options) ? (
+              <div className="grid sm:grid-cols-2 gap-x-8 gap-y-4">
+                <Field label="Call Option" value={options.call_option} />
+                <Field label="Put Option" value={options.put_option} />
+                <Field label="Convertible" value={options.convertible} />
+                <Field label="Exchangeable" value={options.exchangeable} />
+              </div>
+            ) : (
+              <p className="text-sm text-slate-400">No option features found.</p>
             )}
           </Card>
         </SectionShell>

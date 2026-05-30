@@ -24,7 +24,9 @@ Given one or more termsheet documents, extract and structure the information int
 
 IMPORTANT EXTRACTION RULES:
 
-RATING: Populate "rating" ONLY from an explicit credit rating field or statement — for example a "Rating Indicator", "Current Rating", "Credit Rating", or an explicit rating assigned by a rating agency such as RAM Ratings or MARC (e.g. "AAA", "AA1", "AA-IS", "A+/A1"). NEVER derive a rating from the instrument name, programme name, Shariah concept, structure description, or any other descriptive text. If no explicit credit rating is stated anywhere in the documents, set "rating" to exactly "Not Rated".
+RATING: Populate "rating" (and "rating_details") ONLY from an explicit credit rating field or statement — for example a "Rating Indicator", "Current Rating", "Credit Rating", or an explicit rating assigned by a rating agency such as RAM Ratings or MARC (e.g. "AAA", "AA1", "AA-IS", "A+/A1"). NEVER derive a rating from the instrument name, programme name, Shariah concept, structure description, or any other descriptive text. If no explicit credit rating is stated anywhere in the documents, set "rating" to exactly "Not Rated" and leave the "rating_details" fields blank.
+
+COVENANTS & DISSOLUTION: Summarise covenants and dissolution/event-of-default triggers in concise plain English that a fund manager could skim — do not copy long legal clauses verbatim. If a covenant category is not present, leave it blank.
 
 SELLING RESTRICTIONS: Search across ALL uploaded documents for every reference to the CMSA schedules/sections that govern who may invest — for example Schedule 6 (or Section 229(1)(b)), Schedule 7 (or Section 230), Part 1 of Schedule 6 and 7, and any "sophisticated investor" / "qualified investor" language. A restriction may appear in only one of several documents; aggregate every distinct restriction found across all of them.
 
@@ -63,7 +65,34 @@ Respond ONLY in JSON format with no preamble or markdown. Use this structure:
     "trustee_security_agent": "",
     "paying_agent": "",
     "authorised_depository": "",
-    "shariah_adviser": ""
+    "shariah_adviser": "",
+    "principal_advisers": "",
+    "lead_arrangers": "",
+    "lead_managers": "",
+    "solicitors_arranger": "",
+    "solicitors_issuer": "",
+    "shariah_advisers": "",
+    "credit_rating_agency": "",
+    "sustainability_framework_adviser": "",
+    "independent_external_reviewer": ""
+  },
+
+  "issuer_profile": {
+    "listed_status": "e.g. Listed / Unlisted / Public company",
+    "stock_exchange": "",
+    "listing_date": "",
+    "principal_activities": "",
+    "substantial_shareholders": "",
+    "incorporation_date": "",
+    "registration_number": ""
+  },
+
+  "rating_details": {
+    "agency": "e.g. RAM Ratings, MARC",
+    "rating": "the explicit rating symbol only, e.g. AAA, AA1, AA-IS",
+    "final_or_indicative": "final / indicative",
+    "amount_rated": "",
+    "rating_type": "long_term / short_term"
   },
 
   "profit_structure": {
@@ -75,6 +104,13 @@ Respond ONLY in JSON format with no preamble or markdown. Use this structure:
     "spread": "",
     "maximum_rate": "",
     "ibra_provision": ""
+  },
+
+  "options": {
+    "call_option": "description of any issuer call / early redemption option, or 'None'",
+    "put_option": "description of any investor put option, or 'None'",
+    "convertible": "whether the notes are convertible (into equity etc.), or 'None'",
+    "exchangeable": "whether the notes are exchangeable, or 'None'"
   },
 
   "use_of_proceeds": [
@@ -97,6 +133,17 @@ Respond ONLY in JSON format with no preamble or markdown. Use this structure:
     "ranking": "",
     "sukuk_trustee_reimbursement_account": ""
   },
+
+  "covenants_summary": {
+    "positive_covenants": "short plain-English summary of what the issuer must do",
+    "negative_covenants": "short plain-English summary of what the issuer is restricted from doing",
+    "financial_covenants": "short plain-English summary of financial ratios/limits (e.g. gearing, finance-to-equity)",
+    "information_covenants": "short plain-English summary of reporting/disclosure obligations"
+  },
+
+  "dissolution_events_summary": [
+    "Each key dissolution / event-of-default trigger in plain English, e.g. 'Non-payment of any amount due', 'Breach of financial covenant', 'Cross-default on other indebtedness', 'Insolvency or winding-up of the issuer'"
+  ],
 
   "selling_restrictions": [
     "e.g. Schedule 6 or Section 229(1)(b) of the CMSA — Sophisticated investors"
