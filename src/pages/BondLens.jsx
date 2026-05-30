@@ -249,12 +249,10 @@ export default function BondLens() {
         <main className="flex-1 max-w-5xl mx-auto w-full px-6 pt-16 pb-10">
           <div className="max-w-2xl mb-10">
             <h1 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white leading-tight mb-4">
-              Read termsheets like a<br />
-              <span style={{ color: NAVY }} className="dark:text-blue-300">senior banker.</span>
+              Termsheets, <span style={{ color: NAVY }} className="dark:text-blue-300">decoded.</span>
             </h1>
             <p className="text-lg text-slate-500 dark:text-slate-400 leading-relaxed">
-              Upload bond or sukuk termsheet PDFs and instantly see a structured deal
-              analysis. Built for capital markets professionals.
+              Upload bond or sukuk termsheet PDFs and get a structured deal analysis in seconds.
             </p>
           </div>
 
