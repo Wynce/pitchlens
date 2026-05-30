@@ -216,6 +216,21 @@ export default function BondLens() {
     }
   }
 
+  const loadDemo = async () => {
+    setLoading(true); setError(null); setResult(null)
+    try {
+      const res = await fetch('/demo-tnb.json')
+      if (!res.ok) throw new Error('Demo data unavailable')
+      const analysis = await res.json()
+      setExtractDocs([])
+      setResult(analysis); setActive('all')
+    } catch (err) {
+      setError(err.message || 'Could not load demo')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleReset = () => {
     setFiles([]); setResult(null); setExtractDocs([]); setError(null); setActive('all'); setGlossaryOpen(false)
   }
@@ -280,12 +295,22 @@ export default function BondLens() {
 
           {error && <div className="mt-4 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 p-4 rounded-xl text-sm">{error}</div>}
 
-          {files.length > 0 && (
-            <button onClick={handleAnalyze}
-              className="mt-6 text-white px-8 py-3 rounded-xl font-semibold text-lg transition-all hover:opacity-90"
-              style={{ backgroundColor: NAVY }}>
-              Analyze Termsheet{files.length > 1 ? 's' : ''} →
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            {files.length > 0 && (
+              <button onClick={handleAnalyze}
+                className="text-white px-8 py-3 rounded-xl font-semibold text-lg transition-all hover:opacity-90"
+                style={{ backgroundColor: NAVY }}>
+                Analyze Termsheet{files.length > 1 ? 's' : ''} →
+              </button>
+            )}
+            <button onClick={loadDemo}
+              className="px-6 py-3 rounded-xl font-semibold text-lg border-2 text-[#1E3A5F] dark:text-blue-300 transition-all hover:bg-slate-50 dark:hover:bg-slate-900"
+              style={{ borderColor: NAVY }}>
+              Try Demo →
             </button>
+          </div>
+          {files.length === 0 && (
+            <p className="mt-3 text-sm text-slate-400">No file handy? Load a pre-analyzed TNB RM10bn Sukuk Wakalah deal.</p>
           )}
         </main>
 

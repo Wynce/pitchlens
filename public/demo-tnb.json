@@ -1,0 +1,165 @@
+{
+  "issuer_name": "Tenaga Nasional Berhad",
+  "programme_name": "Islamic medium term notes programme of up to RM10.0 billion based on Wakalah Bi Al-Istithmar",
+  "overall_summary": "TNB's RM10 billion 50-year Islamic MTN programme using Wakalah structure, targeting sustainability and conventional sukuk issuances. AAA-rated programme by RAM with flexibility for green/social sukuk under ASEAN standards. Major infrastructure financing platform for Malaysia's national electricity utility.",
+  "deal_snapshot": {
+    "programme_size": "RM10,000,000,000",
+    "available_limit": "",
+    "outstanding": "",
+    "currency": "Ringgit",
+    "tenor_programme": "50 years",
+    "tenor_tranche1": "",
+    "maturity_date": "29/05/2076",
+    "instrument_type": "Sukuk Wakalah (Islamic Medium Term Notes)",
+    "islamic_concept": "Wakalah Bi Al-Istithmar and Murabahah (via Tawarruq arrangement)",
+    "principle": "Wakalah Bi Al-Istithmar",
+    "security_status": "Unsecured",
+    "rating": "AAA",
+    "issue_price": "",
+    "denomination": "",
+    "form": "Bearer",
+    "mode_of_offer": "Private/direct placement, Bought deal, Book building"
+  },
+  "key_parties": {
+    "issuer": "Tenaga Nasional Berhad",
+    "lead_arranger": "CIMB Investment Bank Berhad and Maybank Investment Bank Berhad",
+    "facility_agent": "Maybank Investment Bank Berhad",
+    "trustee_security_agent": "AmanahRaya Trustees Berhad",
+    "paying_agent": "Bank Negara Malaysia",
+    "authorised_depository": "Bank Negara Malaysia",
+    "shariah_adviser": "CIMB Islamic Bank Berhad and Maybank Islamic Berhad",
+    "principal_advisers": "CIMB Investment Bank Berhad and Maybank Investment Bank Berhad",
+    "lead_arrangers": "CIMB Investment Bank Berhad and Maybank Investment Bank Berhad",
+    "lead_managers": "CIMB Investment Bank Berhad and Maybank Investment Bank Berhad",
+    "solicitors_arranger": "Christopher & Lee Ong",
+    "solicitors_issuer": "Zaid Ibrahim & Co",
+    "shariah_advisers": "CIMB Islamic Bank Berhad and Maybank Islamic Berhad",
+    "credit_rating_agency": "RAM Rating Services Berhad",
+    "sustainability_framework_adviser": "Maybank Investment Bank Berhad",
+    "independent_external_reviewer": "Sustainalytics UK Limited and/or other Independent External Reviewer to be appointed"
+  },
+  "issuer_profile": {
+    "listed_status": "Listed",
+    "stock_exchange": "Bursa Malaysia",
+    "listing_date": "28 May 1992",
+    "principal_activities": "Generation, transmission, distribution and sales of electricity",
+    "substantial_shareholders": "Employees Provided Fund Board, Khazanah Nasional Berhad, Kumpulan Wang Persaraan (Diperdabankan), Amanah Saham Bumiputera",
+    "incorporation_date": "12 July 1990",
+    "registration_number": "199001009294 (formerly 200866-W)"
+  },
+  "rating_details": {
+    "agency": "RAM Rating Services Berhad",
+    "rating": "AAA",
+    "final_or_indicative": "final",
+    "amount_rated": "RM10,000,000,000",
+    "rating_type": "long_term"
+  },
+  "profit_structure": {
+    "profit_type": "",
+    "profit_rate_description": "",
+    "payment_frequency": "",
+    "day_count_basis": "",
+    "floating_rate_benchmark": "",
+    "spread": "",
+    "maximum_rate": "",
+    "ibra_provision": "Ibra' granted by Sukukholders on Deferred Sale Price upon dissolution, early redemption, or for Sustainability-Linked Sukuk on periodic distribution dates and scheduled dissolution dates"
+  },
+  "options": {
+    "call_option": "None",
+    "put_option": "None",
+    "convertible": "None",
+    "exchangeable": "None"
+  },
+  "use_of_proceeds": [
+    {
+      "category": "Wakalah Investments",
+      "description": "Investment in TNB's Shariah-compliant general business (at least 33% of proceeds) and Commodity Murabahah Investment for the remaining balance",
+      "green_social_label": "combined"
+    }
+  ],
+  "eligible_projects": {
+    "green_projects": "Green Projects as per ASEAN Green Bond Standards and other applicable sustainability frameworks",
+    "social_projects": "Social Projects as per ASEAN Social Bond Standards and other applicable sustainability frameworks",
+    "certification_requirements": "Compliance with TNB Transition Finance Framework and applicable Sustainability Guidelines/Frameworks or Sustainability-Linked Guidelines/Frameworks"
+  },
+  "security_package": {
+    "secured_description": "",
+    "unsecured_description": "Unsecured obligations of TNB",
+    "ranking": "",
+    "sukuk_trustee_reimbursement_account": ""
+  },
+  "covenants_summary": {
+    "positive_covenants": "Deliver information to Sukuk Trustee, exercise reasonable diligence in business, maintain authorisations and licenses, maintain paying agent in Malaysia, prepare financial statements in accordance with approved accounting standards, maintain proper accounting records, comply with applicable laws",
+    "negative_covenants": "No constitution amendments inconsistent with Transaction Documents, no reduction of paid-up share capital with Material Adverse Effect, no material business changes with Material Adverse Effect, no use of proceeds for non-Shariah purposes, no creation of security interests except permitted securities, restrictions on asset disposals, no dividend payments if sukuk amounts remain unpaid",
+    "financial_covenants": "No financial covenants",
+    "information_covenants": "Notify Sukuk Trustee of changes in financial condition or litigation with Material Adverse Effect, notify of any Dissolution Events and take remedial steps, comply with additional information covenants for Sustainability sukuk"
+  },
+  "dissolution_events_summary": [
+    "Non-payment of nominal value or periodic distributions (5 business day grace period)",
+    "Breach of Transaction Document obligations with Material Adverse Effect (30 day cure period)",
+    "Material misrepresentation in Transaction Documents (30 day cure period)",
+    "Cross-default on other financial indebtedness with Material Adverse Effect (90 day cure period)",
+    "Appointment of receivers or enforcement of security over substantial assets",
+    "Failure to satisfy material judgements",
+    "Insolvency, winding-up or liquidation proceedings",
+    "Creditor arrangements or compositions affecting material indebtedness",
+    "Revocation of material licenses or authorisations",
+    "General inability to pay debts",
+    "Repudiation of Transaction Documents",
+    "Seizure or nationalisation of substantial assets",
+    "Disposal or adverse changes to Government's Special Share",
+    "Material adverse events not remedied within 60 days",
+    "Material change in business nature or scope"
+  ],
+  "selling_restrictions": [
+    "Schedule 5, Part I, 1(b) of the CMSA (consideration not less than RM250,000)",
+    "Schedule 6 of the CMSA — Sophisticated investors",
+    "Schedule 7 of the CMSA — Sophisticated investors",
+    "Schedule 8 of the CMSA",
+    "Schedule 9 of the CMSA"
+  ],
+  "regulatory_approvals": {
+    "sc_approval_date": "",
+    "bnm_approval_date": "",
+    "approval_expiry": "",
+    "sector_classification": ""
+  },
+  "risk_highlights": [
+    "50-year tenor creates significant duration and interest rate risk",
+    "Exposure to regulatory changes in Malaysia's electricity sector",
+    "Dependence on TNB's operational performance in Shariah-compliant business",
+    "Commodity price volatility affecting Murabahah investments",
+    "Sustainability-linked sukuk subject to ESG performance adjustments",
+    "Government ownership structure changes could trigger dissolution events"
+  ],
+  "data_gaps": [
+    "Specific profit rates and pricing terms not disclosed",
+    "Detailed financial statements of TNB not provided",
+    "Individual tranche terms and conditions not specified",
+    "Specific sustainability KPIs and SPTs not detailed",
+    "SC lodgement and approval dates not provided",
+    "Detailed use of proceeds allocation not specified"
+  ],
+  "glossary": [
+    {
+      "term": "Wakalah Bi Al-Istithmar",
+      "definition": "Islamic investment agency contract where the Sukuk Trustee appoints TNB as agent to invest sukuk proceeds in Shariah-compliant investments on behalf of investors"
+    },
+    {
+      "term": "Murabahah via Tawarruq",
+      "definition": "Islamic sale contract involving purchase and sale of commodities at cost-plus-profit, with the buyer selling the commodities to obtain liquidity"
+    },
+    {
+      "term": "Ibra'",
+      "definition": "Shariah concept of debt forgiveness or waiver, where sukukholders release their rights to certain amounts under specific circumstances"
+    },
+    {
+      "term": "Ta'widh",
+      "definition": "Compensation payable under Islamic law for actual losses incurred due to breach of fiduciary duty or delayed payments"
+    },
+    {
+      "term": "Dissolution Event",
+      "definition": "Event of default under Islamic finance structure that triggers acceleration and enforcement of sukuk obligations"
+    }
+  ]
+}
