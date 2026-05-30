@@ -379,7 +379,7 @@ export default function BondLens() {
           <div className="flex items-center gap-2">
             <DarkToggle dark={dark} setDark={setDark} />
             <button onClick={handleReset}
-              className="text-sm text-white px-3 py-2 rounded-lg transition hover:opacity-90"
+              className="text-sm text-white px-3 min-h-11 inline-flex items-center justify-center rounded-lg transition hover:opacity-90"
               style={{ backgroundColor: NAVY }}>
               ← New Analysis
             </button>

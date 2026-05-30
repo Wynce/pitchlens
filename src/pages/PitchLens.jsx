@@ -287,15 +287,15 @@ export default function PitchLens() {
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <DarkToggle dark={dark} setDark={setDark} />
             <button onClick={() => exportAnalysisPDF(result)} title="Export PDF"
-              className="text-sm border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition">
-              📄<span className="hidden sm:inline"> Export PDF</span>
+              className="text-sm border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 px-3 min-w-11 min-h-11 inline-flex items-center justify-center rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition">
+              📄<span className="hidden sm:inline">&nbsp;Export PDF</span>
             </button>
             <button onClick={copyGapQuestions} title="Copy gap questions"
-              className="text-sm border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition">
-              📋<span className="hidden sm:inline"> Copy Gaps</span>
+              className="text-sm border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 px-3 min-w-11 min-h-11 inline-flex items-center justify-center rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition">
+              📋<span className="hidden sm:inline">&nbsp;Copy Gaps</span>
             </button>
             <button onClick={handleReset} title="New analysis"
-              className="text-sm text-white px-3 py-2 rounded-lg transition hover:opacity-90 shrink-0"
+              className="text-sm text-white px-3 min-h-11 inline-flex items-center justify-center rounded-lg transition hover:opacity-90 shrink-0"
               style={{ backgroundColor: PITCHIN_RED }}>
               ← New
             </button>
