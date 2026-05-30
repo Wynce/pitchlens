@@ -42,6 +42,23 @@ async function extractViaBlob(file) {
 
 export { extractViaBlob }
 
+// BondLens: extract several termsheet PDFs in one pass, labelling each
+// document so Claude can analyze them together. Returns concatenated,
+// labelled text plus the combined page images across all files.
+export async function extractMultiplePDFs(files) {
+  const labelledTexts = []
+  const pageImages = []
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i]
+    const { text, pageImages: imgs } = await extractPDF(file)
+    labelledTexts.push(`=== Document ${i + 1}: ${file.name} ===\n${text}`)
+    if (imgs?.length) pageImages.push(...imgs)
+  }
+
+  return { text: labelledTexts.join('\n\n'), pageImages }
+}
+
 export async function extractPDF(file) {
   if (isMobile()) {
     return extractViaDirect(file)
