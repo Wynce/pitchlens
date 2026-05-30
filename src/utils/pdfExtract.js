@@ -81,9 +81,14 @@ export async function extractMultiplePDFs(files) {
     const { text: rawText, pageImages: imgs } = await extractPDF(file)
     const text = squeezeText(rawText)
     labelledTexts.push(`=== Document ${i + 1}: ${file.name} ===\n${text}`)
-    if (imgs?.length) pageImages.push(...imgs)
     const chars = meaningfulCharCount(text)
-    docs.push({ name: file.name, chars, lowText: chars < LOW_TEXT_THRESHOLD })
+    const lowText = chars < LOW_TEXT_THRESHOLD
+    // Termsheets are text documents. Only fall back to page images when a file
+    // yielded almost no text (scanned / image-based) — sending images for every
+    // file balloons the payload and slows Claude enough to hit the function
+    // timeout, especially on multi-document uploads.
+    if (lowText && imgs?.length) pageImages.push(...imgs)
+    docs.push({ name: file.name, chars, lowText })
   }
 
   return { text: labelledTexts.join('\n\n'), pageImages, docs }

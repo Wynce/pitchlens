@@ -10,6 +10,9 @@ export async function analyzePitchDeck(data) {
 
   if (!response.ok) {
     const err = await response.json().catch(() => ({}))
+    if (response.status === 504 || response.status === 502) {
+      throw new Error('Analysis timed out — the deck may be too large. Try a smaller PDF.')
+    }
     throw new Error(err.error || 'Analysis failed')
   }
 
